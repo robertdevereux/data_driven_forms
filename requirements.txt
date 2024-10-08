@@ -1,0 +1,7 @@
+# first two only for env_python_django
+Django
+gunicorn
+
+# next two added only for env_python_django_psql
+dj_database_url
+psycopg2

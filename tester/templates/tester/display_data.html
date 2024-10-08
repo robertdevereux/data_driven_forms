@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DBTest Data</title>
+</head>
+<body>
+    <h1>DBTest Table Data</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Colour</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.id }}</td>
+            <td>{{ entry.colour }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
