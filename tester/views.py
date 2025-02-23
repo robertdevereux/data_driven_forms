@@ -19,6 +19,15 @@ def check_db_connection(request):
     except OperationalError:
         return HttpResponse("Database connection failed!")
 
+def load_data_to_db(request):
+    a=DBTest(colour="Red")
+    a.save()
+    a = DBTest(colour="Blue")
+    a.save()
+    a = DBTest(colour="Green")
+    a.save()
+    return HttpResponse("Successfully saved three records")
+
 def display_dbtest_data(request):
     # Query all rows from the DBTest table
     dbtest_data = DBTest.objects.all()
