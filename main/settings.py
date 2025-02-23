@@ -28,7 +28,8 @@ logging.basicConfig(level=logging.DEBUG)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Get the value of the environment variable 'IS_REMOTE' and store it in is_remote_flag
-is_remote_flag = os.getenv('IS_REMOTE', 'false') == 'true'
+print("IS_REMOTE is set to:", os.getenv('IS_REMOTE', 'NOT SET'))
+is_remote_flag = os.getenv('IS_REMOTE', 'false').lower() == 'true'
 
 # Set DEBUG to True, both locally and remotely
 # idc swap to 'DEBUG = not is_remote_flag' to enable DEBUG locally, but disable DEBUG remotely
