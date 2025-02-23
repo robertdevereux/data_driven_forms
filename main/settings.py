@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+a=1 # an edit to check git tracking correctly
+
 from pathlib import Path
 
 # my addition to imports (used on next addition)
