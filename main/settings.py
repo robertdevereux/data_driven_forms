@@ -10,8 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-a=1 # an edit to check git tracking correctly
-
 from pathlib import Path
 
 # my addition to imports (used on next addition)
@@ -110,7 +108,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'robert',
+            'NAME': 'data_driven_forms',
             'USER': 'robert',
             'PASSWORD': 'downingstreet',
             'HOST': 'localhost',
