@@ -19,6 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', include('app1.urls')),  # this sends http://127.0.0.1:8000 to app1 (and that sends '' to app1_home
+    path('app1/', include('app1.urls')),  # This makes sure all app1 views are prefixed
     path('admin/', admin.site.urls), # this sends http://127.0.0.1:8000/admin off to admin site
     path('tester/', include('tester.urls')),  # this sends http://127.0.0.1:8000/tester off to tester (and that sends '' to tester_home
 ]

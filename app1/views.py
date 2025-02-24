@@ -35,7 +35,7 @@ def upload_screen_questions(request):
         messages.success(request, "Screen Questions uploaded successfully!")
         return redirect('upload_screen_questions')
 
-    return render(request, 'upload_screen_questions.html')
+    return render(request, 'app1/upload_screen_questions.html')
 
 
 def upload_screen_routing(request):
@@ -62,7 +62,21 @@ def upload_screen_routing(request):
         messages.success(request, "Screen Routing uploaded successfully!")
         return redirect('upload_screen_routing')
 
-    return render(request, 'upload_screen_routing.html')
+    return render(request, 'app1/upload_screen_routing.html')
+
+def display_screen_questions(request):
+    # Query all rows from the ScreenQuestion object
+    data = ScreenQuestion.objects.all()
+
+    # Pass the data to the template
+    return render(request, 'app1/display_screen_questions.html', {'dbtest_data': data})
+
+def display_screen_routing(request):
+    # Query all rows from the DBTest table
+    data = ScreenRouting.objects.all()
+
+    # Pass the data to the template
+    return render(request, 'app1/display_screen_routing.html', {'dbtest_data': data})
 
 
 def app1_home(request):
