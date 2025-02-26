@@ -1,0 +1,28 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <a href="{{ previous_question_url }}" class="govuk-back-link">Back</a>
+
+    <form method="POST" action="{% url 'process_answer' question_id=question_id %}">
+        {% csrf_token %}
+
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                <h1 class="govuk-fieldset__heading">{{ question_text }}</h1>
+            </legend>
+
+            <div class="govuk-radios">
+                {% for option in options %}
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input" id="option{{ forloop.counter }}" name="question" type="radio" value="{{ option }}">
+                        <label class="govuk-label govuk-radios__label" for="option{{ forloop.counter }}">
+                            {{ option }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <button type="submit" class="govuk-button">Continue</button>
+    </form>
+{% endblock %}

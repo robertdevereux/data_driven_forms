@@ -1,0 +1,35 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <h1 class="govuk-heading-l">Select a Service</h1>
+
+    <!-- Debugging: Show number of services -->
+    <p>DEBUG: Services count = {{ services|length }}</p>
+
+    {% if services %}
+        <form method="POST" action="{% url 'select_service' %}">
+            {% csrf_token %}
+
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                    <h1 class="govuk-fieldset__heading">Which service do you want to use?</h1>
+                </legend>
+
+                <div class="govuk-radios">
+                    {% for service in services %}
+                        <div class="govuk-radios__item">
+                            <input class="govuk-radios__input" id="{{ service.service_id }}" name="service_id" type="radio" value="{{ service.service_id }}" required>
+                            <label class="govuk-label govuk-radios__label" for="{{ service.service_id }}">
+                                {{ service.service_name }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <button type="submit" class="govuk-button">Continue</button>
+        </form>
+    {% else %}
+        <p class="govuk-body">No services available. Please contact support.</p>
+    {% endif %}
+{% endblock %}

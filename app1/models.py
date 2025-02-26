@@ -42,3 +42,10 @@ class ScreenRouting(models.Model):
 
     def __str__(self):
         return f"[{self.service_id}] {self.current_id} ({self.answer_value if self.answer_value else 'Any'}) → {self.next_id}"
+
+class Service(models.Model):
+    service_id = models.CharField(max_length=100, primary_key=True)  # Unique identifier for the service
+    service_name = models.CharField(max_length=255)  # Human-readable service name
+
+    def __str__(self):
+        return self.service_name

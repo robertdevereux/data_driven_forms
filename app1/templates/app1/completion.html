@@ -1,0 +1,22 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <h1 class="govuk-heading-l">You have completed the process</h1>
+    <p class="govuk-body">Thank you for your responses.</p>
+
+    {% if error_message %}
+        <div class="govuk-warning-text">
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+            <strong class="govuk-warning-text__text">
+                <span class="govuk-warning-text__assistive">Warning</span>
+                {{ error_message }}
+            </strong>
+        </div>
+    {% endif %}
+
+    <!-- ✅ Display the JSON string in a readable format -->
+    <h2 class="govuk-heading-m">Submitted Data</h2>
+    <pre class="govuk-body">{{ final_json }}</pre>
+
+    <a href="{% url 'restart_process' %}" class="govuk-button govuk-button--warning">Start Again</a>
+{% endblock %}

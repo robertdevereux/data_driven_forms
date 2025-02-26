@@ -1,0 +1,17 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <a href="{{ previous_question_url }}" class="govuk-back-link">Back</a>
+
+    <form method="POST" action="{% url 'process_answer' question_id=question_id %}">
+        {% csrf_token %}
+
+        <label class="govuk-label govuk-label--l" for="text-input">
+            {{ question_text }}
+        </label>
+        <input class="govuk-input" id="text-input" name="question" type="text">
+
+        <button type="submit" class="govuk-button">Continue</button>
+    </form>
+{% endblock %}
+
