@@ -120,7 +120,8 @@ def radio_view(request, question_id):
     return render(request, "app1/radio_template.html", {
         "question_id": question_id,  # Ensure question_id is passed
         "question_text": question.question_text,
-        "options": options
+        "options": options,
+        "question_guidance" : "<h1 class='govuk-heading-1'>Freeports</h1>"
     })
 
 def text_view(request, question_id):
