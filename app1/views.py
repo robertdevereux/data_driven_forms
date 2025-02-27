@@ -121,7 +121,8 @@ def radio_view(request, question_id):
         "question_id": question_id,  # Ensure question_id is passed
         "question_text": question.question_text,
         "options": options,
-        "question_guidance" : "<h1 class='govuk-heading-1'>Freeports</h1>"
+        "question_guidance" : '<script>alert("XSS Attack!");</script>'
+ #"<h1 class='govuk-heading-1'>Freeports</h1>"
     })
 
 def text_view(request, question_id):

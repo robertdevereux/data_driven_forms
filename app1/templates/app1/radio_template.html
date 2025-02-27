@@ -3,7 +3,7 @@
 {% block content %}
     <a href="{{ previous_question_url }}" class="govuk-back-link">Back</a>
     <h1 class='govuk-heading-1'>Freeports@@@</h1>
-    {{ question_guidance }}
+    {{ question_guidance | safe }}
     <form method="POST" action="{% url 'process_answer' question_id=question_id %}">
         {% csrf_token %}
 
