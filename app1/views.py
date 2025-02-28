@@ -65,14 +65,14 @@ def upload_screen_routing(request):
 
 def display_screen_questions(request):
     # Query all rows from the ScreenQuestion object
-    data = ScreenQuestion.objects.all()
+    data = ScreenQuestion.objects.order_by('id').all()
 
     # Pass the data to the template
     return render(request, 'app1/display_screen_questions.html', {'dbtest_data': data})
 
 def display_screen_routing(request):
     # Query all rows from the DBTest table
-    data = ScreenRouting.objects.all()
+    data = ScreenRouting.objects.order_by('service_id','current_id').all()
 
     # Pass the data to the template
     return render(request, 'app1/display_screen_routing.html', {'dbtest_data': data})
