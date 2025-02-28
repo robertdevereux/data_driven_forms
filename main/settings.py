@@ -164,11 +164,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Ensures Django knows where to find static files in development
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "app1/static"),  # Ensures Django knows where to find static files
+    os.path.join(BASE_DIR, "app1/static/app1"),
 ]
 
-# Only needed for collectstatic (for deployment)
+# Ensures Django knows where to find files in production (Only needed for collectstatic)
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Default primary key field type
