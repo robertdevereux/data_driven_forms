@@ -2,14 +2,25 @@
 
 {% block content %}
     <a href="{{ previous_question_url }}" class="govuk-back-link">Back</a>
+    <br>
+    <!-- any guidance -->
+    {% if guidance %}
+        {{ guidance|safe }}
+    {% endif %}
 
     <form method="POST" action="{% url 'process_answer' question_id=question_id %}">
         {% csrf_token %}
 
         <fieldset class="govuk-fieldset">
             <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                <!-- the question -->
                 <h1 class="govuk-fieldset__heading">{{ question_text }}</h1>
             </legend>
+
+            <!-- any hint (asked once, above all the radio buttons) -->
+            {% if hint %}
+                <p class="govuk-hint">{{ hint|safe }}</p>
+            {% endif %}
 
             <div class="govuk-checkboxes">
                 {% for option in options %}
@@ -22,7 +33,7 @@
                 {% endfor %}
             </div>
         </fieldset>
-
+        <br>
         <button type="submit" class="govuk-button">Continue</button>
     </form>
 {% endblock %}

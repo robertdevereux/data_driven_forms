@@ -1,4 +1,4 @@
-import csv
+import csv, json, bleach
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
@@ -110,41 +110,44 @@ def question_router(request, question_id):
         print(f"Unknown question type for {question_id}: {question.question_type}")
         return redirect("completion_page")  # If `question_type` is unrecognized
 
-
 def radio_view(request, question_id):
     question = get_object_or_404(ScreenQuestion, id=question_id)
 
-    # Ensure options are correctly split into a list
-    options = question.options.split(";") if question.options else []
+    allowed_tags = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
 
     return render(request, "app1/radio_template.html", {
-        "question_id": question_id,  # Ensure question_id is passed
+        "question_id": question_id,
         "question_text": question.question_text,
-        "options": options,
-        "question_guidance" : '<script>alert("XSS Attack!");</script>'
- #"<h1 class='govuk-heading-1'>Freeports</h1>"
+        "guidance": bleach.clean(question.guidance, tags=allowed_tags) if question.guidance else "",
+        "hint": bleach.clean(question.hint, tags=allowed_tags) if question.hint else "",
+        "options": question.options.split(";") if question.options else [],
     })
 
 def text_view(request, question_id):
     question = get_object_or_404(ScreenQuestion, id=question_id)
 
+    allowed_tags = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
+
     return render(request, "app1/text_template.html", {
-        "question_id": question_id,  # Ensure question_id is passed
-        "question_text": question.question_text
+        "question_id": question_id,
+        "question_text": question.question_text,
+        "guidance": bleach.clean(question.guidance, tags=allowed_tags) if question.guidance else "",
+        "hint": bleach.clean(question.hint, tags=allowed_tags) if question.hint else "",
     })
+
 
 def checkbox_view(request, question_id):
     question = get_object_or_404(ScreenQuestion, id=question_id)
-    options = question.options.split(";") if question.options else []
+
+    allowed_tags = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
 
     return render(request, "app1/checkbox_template.html", {
         "question_id": question_id,
         "question_text": question.question_text,
-        "options": options
+        "guidance": bleach.clean(question.guidance, tags=allowed_tags) if question.guidance else "",
+        "hint": bleach.clean(question.hint, tags=allowed_tags) if question.hint else "",
+        "options": question.options.split(";") if question.options else [],
     })
-
-import json
-from django.shortcuts import render, redirect, get_object_or_404
 
 def process_answer(request, question_id):
     if request.method == "POST":
@@ -214,7 +217,7 @@ def completion_page(request):
     })
 
 def restart_process(request):
-    # ✅ Remove stored user answers & JSON data
+    # Remove stored user answers & JSON data
     request.session.pop("user_answers", None)
     request.session.pop("final_json", None)
     request.session.pop("service_id", None)
@@ -234,6 +237,5 @@ def app1_home(request):
 
 def p2(request):
     return HttpResponse("This is the 2nd page of the app app1")
-
 
 
