@@ -49,3 +49,13 @@ class Service(models.Model):
 
     def __str__(self):
         return self.service_name
+
+class Permissions(models.Model):
+    user_id=models.CharField(max_length=100, unique=True)  # Unique identifier for the
+    regime_id= models.CharField(max_length=100)  # Unique identifier for the service
+    service_id= models.CharField(max_length=100)  # Unique identifier for the service
+
+class Regimes(models.Model):
+    regime_id = models.CharField(max_length=100, unique=True)  # Unique identifier for the service
+    regime_name = models.CharField(max_length=100)  # Unique identifier for the service
+    service_id = models.CharField(max_length=100)  # Unique identifier for the service
