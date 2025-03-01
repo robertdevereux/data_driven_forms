@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schedules</title>
+</head>
+<body>
+    <h1>Schedules</h1>
+    <table border="1">
+        <tr>
+          <th>Regime ID</th>
+          <th>Schedule ID </th>
+          <th>Schedule name</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.regime_id }}</td>
+            <td>{{ entry.schedule_id }}</td>
+            <td>{{ entry.schedule_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br>
+    <a href="../../select_service">Return to service selection</a>
+</body>
+</html>

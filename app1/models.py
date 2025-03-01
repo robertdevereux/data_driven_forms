@@ -1,12 +1,39 @@
 from django.db import models
 
-class ScreenQuestion(models.Model):
+### 🔹 Top Level: Regime (e.g., a Tax or Benefit System) ###
+class Regime(models.Model):
+    regime_id = models.CharField(max_length=100, unique=True)
+    regime_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.regime_name
+
+### 🔹 Middle Level: Schedule (A grouping of Sections, eg IHT schedule) ###
+class Schedule(models.Model):
+    schedule_id = models.CharField(max_length=100, unique=True)
+    schedule_name = models.CharField(max_length=255)
+    regime_id =   models.CharField(max_length=100, default='Regime_1') # A Schedule can belong to multiple Regimes
+
+    def __str__(self):
+        return self.schedule_name
+
+### 🔹 Bottom Level: Section (A collection of questions in a logical order eg 'menu' item) ###
+class Section(models.Model):
+    section_id = models.CharField(max_length=100, unique=True)
+    section_name = models.CharField(max_length=255)
+    schedule_id = models.CharField(max_length=100, default='Schedule_1')  # A Section can be used in multiple Schedules
+
+    def __str__(self):
+        return self.section_name
+
+### 🔹 Master List of Questions (Independent of Sections) ###
+class Question(models.Model):
     QUESTION_TYPE_CHOICES = [
         ('text', 'Text'),
         ('number', 'Number'),
         ('radio', 'Radio'),
         ('picklist', 'Pick List'),
-        ('variant-a', 'Variant A'),  # Placeholder for complex screen types
+        ('variant-a', 'Variant A'),
         ('variant-b', 'Variant B'),
     ]
     ANSWER_TYPE_CHOICES = [
@@ -14,48 +41,46 @@ class ScreenQuestion(models.Model):
         ('number', 'Number'),
         ('date', 'Date'),
     ]
-    id = models.CharField(max_length=50, primary_key=True)  # Unique identifier (Q1, Q2, V1, etc.)
-    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES)
-    guidance = models.TextField(blank=True, null=True)  # Long guidance text before question
+
+    question_id = models.CharField(max_length=50, primary_key=True)  # Unique identifier (Q1, Q2, etc.)
     question_text = models.TextField(blank=True, null=True)  # Main question text
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES)
+    guidance = models.TextField(blank=True, null=True)  # Long guidance text before the question
     hint = models.CharField(max_length=255, blank=True, null=True)  # Short hint after the question
-    answer_type = models.CharField(max_length=20, choices=ANSWER_TYPE_CHOICES, blank=True, null=True)  # Type of expected answer
-    options = models.TextField(blank=True, null=True)  # Semi-colon separated values (for radio/picklist)
-    parent_screen = models.ForeignKey(
-        'self', on_delete=models.CASCADE, blank=True, null=True,
-        related_name='sub_questions'
+    answer_type = models.CharField(max_length=20, choices=ANSWER_TYPE_CHOICES, blank=True, null=True)  # Expected answer type
+    options = models.TextField(blank=True, null=True)  # Semi-colon separated values for radio/picklist
+    parent_question = models.ForeignKey(
+        'self', on_delete=models.CASCADE, blank=True, null=True, related_name='sub_questions'
     )  # Links sub-questions to a variant screen
 
     def __str__(self):
-        return self.id
+        return f"{self.question_id} - {self.question_text}"
 
-class ScreenRouting(models.Model):
-    service_id = models.CharField(max_length=100, null=True)  # Identifies the service this routing belongs to
-    current_id = models.CharField(max_length=50)  # The screen/question currently being answered
-    answer_value = models.TextField(blank=True, null=True)  # Used only when routing depends on an answer
-    next_id = models.CharField(max_length=50)  # The next screen/question to display
+### 🔹 Routing (Defines the flow of questions within a Section) ###
+class QuestionRouting(models.Model):
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="routings")
+    current_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="current_routes")
+    answer_value = models.TextField(blank=True, null=True)  # Optional: Only needed for branching logic
+    next_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="next_routes", null=True, blank=True)
+    end_process = models.BooleanField(default=False)  # If True, marks the end of the section
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['service_id', 'current_id', 'answer_value'], name='unique_routing_rule')
+            models.UniqueConstraint(fields=['section', 'current_question', 'answer_value'], name="unique_routing_rule")
         ]
 
     def __str__(self):
-        return f"[{self.service_id}] {self.current_id} ({self.answer_value if self.answer_value else 'Any'}) → {self.next_id}"
+        return f"Route in {self.section.section_name}: {self.current_question.question_text} → {self.next_question or 'END'}"
 
-class Service(models.Model):
-    service_id = models.CharField(max_length=100, primary_key=True)  # Unique identifier for the service
-    service_name = models.CharField(max_length=255)  # Human-readable service name
 
-    def __str__(self):
-        return self.service_name
+### 🔹 Permissions (Controls Access to Regimes, Schedules, or Sections) ###
+class Permission(models.Model):
+    user_id = models.CharField(max_length=100)  # User identifier (assumed external system handles users)
+    regime_id = models.CharField(max_length=100, default='Regime_1')
+    schedule_id = models.CharField(max_length=100, default='Schedule_1')
+    section_id = models.CharField(max_length=100, default='Section_1')
 
-class Permissions(models.Model):
-    user_id=models.CharField(max_length=100, unique=True)  # Unique identifier for the
-    regime_id= models.CharField(max_length=100)  # Unique identifier for the service
-    service_id= models.CharField(max_length=100)  # Unique identifier for the service
+    class Meta:
+        unique_together = ('user_id', 'regime_id', 'schedule_id', 'section_id')  # Ensure no duplicate permissions
 
-class Regimes(models.Model):
-    regime_id = models.CharField(max_length=100, unique=True)  # Unique identifier for the service
-    regime_name = models.CharField(max_length=100)  # Unique identifier for the service
-    service_id = models.CharField(max_length=100)  # Unique identifier for the service
+

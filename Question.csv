@@ -1,0 +1,9 @@
+﻿ID,Question Type,Guidance,Question Text,Hint,Answer Type,Options,Parent Screen
+Q1,text,"<h1 class=govuk-heading-1>Full name</h1><p>It’s important that you provide your full name, for example as it appears on any passport or driving licence<\p> ",What is your name?,,text,,
+Q2,radio,,What is your gender?,Only male or female,text,Male; Female,
+Q3,radio,"<h1 class=govuk-heading-1>Country of residence </h1><p>This is the country in which you spend most days of each year </p>mportant that you provide your full name, for example as it appears on any passport or driving licence<\p> ",Where do you live?,,text,England; Wales; Scotland; Northern Ireland,
+Q4,radio,"<h1 class=govuk-heading-1>Qualifications<p>We want to know all the levels of qualifications you have, so please tick as many of the boxes as apply to you <\p>",What are your qualifications,,list,None; GCSE; A levels; degree; doctorate,
+Q5,text,,What is your annual income?,Before tax,text,,
+Q6,radio,Your location matters.,What is your employment status?,Select one option.,text,employed; self-employed; unemployed; retired,
+Q7,text,,Who is your employer?,,,,
+Q8,text,,When did you retire?,,,,

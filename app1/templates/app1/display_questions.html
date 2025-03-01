@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Screen Questions</title>
+</head>
+<body>
+    <h1>Screen Questions</h1>
+    <table border="1">
+        <tr>
+          <th>ID</th>
+          <th>Question type</th>
+          <th>Guidance</th>
+          <th>Question text</th>
+          <th>Hint</th>
+          <th>Answer type</th>
+          <th>Options</th>
+          <th>Parent screen</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.id }}</td>
+            <td>{{ entry.question_type }}</td>
+            <td>{{ entry.guidance }}</td>
+            <td>{{ entry.question_text }}</td>
+            <td>{{ entry.hint }}</td>
+            <td>{{ entry.answer_type }}</td>
+            <td>{{ entry.options }}</td>
+          <td>{{ entry.parent_screen }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br>
+    <a href="../../select_service">Return to service selection</a>
+</body>
+</html>

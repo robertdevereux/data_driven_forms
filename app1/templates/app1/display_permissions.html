@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User permissions</title>
+</head>
+<body>
+    <h1>User Permissions</h1>
+    <table border="1">
+        <tr>
+          <th>User ID</th>
+          <th>Regime</th>
+          <th>Schedule</th>
+          <th>Section</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.user_id }}</td>
+            <td>{{ entry.schedule }}</td>
+            <td>{{ entry.section }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br>
+    <a href="../../select_service">Return to service selection</a>
+</body>
+</html>

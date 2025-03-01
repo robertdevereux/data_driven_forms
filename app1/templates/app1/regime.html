@@ -1,0 +1,28 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Select a Regime</h2>
+
+    {% if messages %}
+        <div class="alert alert-danger">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'select_regime' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="regime_id" class="form-label">Choose a Regime:</label>
+            <select class="form-control" id="regime_id" name="regime_id" required>
+                {% for regime in regimes %}
+                    <option value="{{ regime.regime_id }}">{{ regime.regime_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Continue</button>
+    </form>
+</div>
+{% endblock %}

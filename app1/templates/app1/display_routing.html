@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Routing</title>
+</head>
+<body>
+    <h1>Routing</h1>
+    <table border="1">
+        <tr>
+          <th>Service</th>
+          <th>Current ID</th>
+          <th>Answer values</th>
+          <th>Next ID</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.service_id }}</td>
+            <td>{{ entry.current_id }}</td>
+            <td>{{ entry.answer_value }}</td>
+            <td>{{ entry.next_id }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br>
+    <a href="../../select_service">Return to service selection</a>
+</body>
+</html>

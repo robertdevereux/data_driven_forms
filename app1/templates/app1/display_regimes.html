@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Regimes</title>
+</head>
+<body>
+    <h1>Regimes</h1>
+    <table border="1">
+        <tr>
+          <th>Regime ID</th>
+          <th>Regime</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.regime_id }}</td>
+            <td>{{ entry.regime_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br>
+    <a href="../../select_service">Return to service selection</a>
+</body>
+</html>
