@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from urllib.parse import urlencode
-from .models import Question, QuestionRouting, Section, Schedule, Regime, Permission
+from .models import Question, Routing, Section, Schedule, Regime, Permission
 
 def upload_sections(request):
     if request.method == 'POST' and request.FILES.get('file'):

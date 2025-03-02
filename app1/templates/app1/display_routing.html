@@ -7,17 +7,17 @@
     <h1>Routing</h1>
     <table border="1">
         <tr>
-          <th>Service</th>
+          <th>Section</th>
           <th>Current ID</th>
           <th>Answer values</th>
           <th>Next ID</th>
         </tr>
         {% for entry in dbtest_data %}
         <tr>
-            <td>{{ entry.service_id }}</td>
-            <td>{{ entry.current_id }}</td>
+            <td>{{ entry.section_id }}</td>
+            <td>{{ entry.current_question }}</td>
             <td>{{ entry.answer_value }}</td>
-            <td>{{ entry.next_id }}</td>
+            <td>{{ entry.next_question }}</td>
         </tr>
         {% endfor %}
     </table>

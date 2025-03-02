@@ -1,7 +1,0 @@
-ID,Question Type,Guidance,Question Text,Hint,Answer Type,Options,Parent Screen
-Q1,radio,Please provide your gender.,What is your gender?,Select one option.,text,Male; Female,
-Q2,text,Tell us who you are.,What is your name?,Use your full name.,text,,
-Q3,radio,Your location matters.,Where do you live?,Select one option.,text,England; Wales; Scotland; Northern Ireland,
-V1,variant-a,,,,,,
-V1-Q1,text,Address details,What is your address?,Include house number and postcode.,text,,V1
-V1-Q2,text,Contact details,What is your phone number?,Mobile or landline.,number,,V1

@@ -1,13 +1,17 @@
 from django.urls import path
-from .views import upload_sections, upload_questions, upload_routing, display_permissions, display_regimes, display_schedules, display_sections,display_routing,display_questions, select_regime, select_schedule, select_section, question_router, radio_view, text_view, checkbox_view, process_answer, completion_page, restart_process, user_login
+from .views import select_regime, select_schedule, select_section, question_router, radio_view, text_view, checkbox_view, process_answer, completion_page, restart_process, user_login
+from .views_data import upload_regimes, upload_schedules, upload_sections, upload_routing, upload_questions, upload_permissions, display_regimes, display_schedules, display_sections,display_routing,display_questions, display_permissions
 from . import views
 
 urlpatterns = [
     path('', views.user_login, name='user_login'),
 
+    path('upload/regimes/', upload_regimes, name='upload_regimes'),
+    path('upload/schedules/', upload_schedules, name='upload_schedules'),
     path('upload/sections/', upload_sections, name='upload_sections'),
-    path('upload/questions/', upload_questions, name='upload_questions'),
     path('upload/routing/', upload_routing, name='upload_routing'),
+    path('upload/questions/', upload_questions, name='upload_questions'),
+    path('upload/permissions/', upload_permissions, name='upload_permissions'),
 
     path('display/permissions/', display_permissions, name='display_permissions'),
     path('display/regimes/', display_regimes, name='display_regimes'),

@@ -10,18 +10,18 @@ class Regime(models.Model):
 
 ### 🔹 Middle Level: Schedule (A grouping of Sections, eg IHT schedule) ###
 class Schedule(models.Model):
-    schedule_id = models.CharField(max_length=100, unique=True)
+    schedule_id = models.CharField(max_length=100)
     schedule_name = models.CharField(max_length=255)
-    regime_id =   models.CharField(max_length=100, default='Regime_1') # A Schedule can belong to multiple Regimes
+    regime_id =   models.CharField(max_length=100) # A Schedule can belong to multiple Regimes
 
     def __str__(self):
         return self.schedule_name
 
 ### 🔹 Bottom Level: Section (A collection of questions in a logical order eg 'menu' item) ###
 class Section(models.Model):
-    section_id = models.CharField(max_length=100, unique=True)
+    section_id = models.CharField(max_length=100)
     section_name = models.CharField(max_length=255)
-    schedule_id = models.CharField(max_length=100, default='Schedule_1')  # A Section can be used in multiple Schedules
+    schedule_id = models.CharField(max_length=100)  # A Section can be used in multiple Schedules
 
     def __str__(self):
         return self.section_name
@@ -57,21 +57,16 @@ class Question(models.Model):
         return f"{self.question_id} - {self.question_text}"
 
 ### 🔹 Routing (Defines the flow of questions within a Section) ###
-class QuestionRouting(models.Model):
-    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="routings")
-    current_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="current_routes")
+class Routing(models.Model):
+    section_id = models.CharField(max_length=100,default="section_1")
+    current_question = models.CharField(max_length=50)
     answer_value = models.TextField(blank=True, null=True)  # Optional: Only needed for branching logic
-    next_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="next_routes", null=True, blank=True)
-    end_process = models.BooleanField(default=False)  # If True, marks the end of the section
+    next_question = models.CharField(max_length=50, default="Q1")
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['section', 'current_question', 'answer_value'], name="unique_routing_rule")
+            models.UniqueConstraint(fields=['section_id', 'current_question', 'answer_value'], name="unique_routing_rule")
         ]
-
-    def __str__(self):
-        return f"Route in {self.section.section_name}: {self.current_question.question_text} → {self.next_question or 'END'}"
-
 
 ### 🔹 Permissions (Controls Access to Regimes, Schedules, or Sections) ###
 class Permission(models.Model):

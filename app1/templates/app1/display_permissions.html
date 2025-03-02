@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>User permissions</title>
+    <title>Permissions</title>
 </head>
 <body>
-    <h1>User Permissions</h1>
+    <h1>Permissions</h1>
     <table border="1">
         <tr>
           <th>User ID</th>
@@ -15,8 +15,9 @@
         {% for entry in dbtest_data %}
         <tr>
             <td>{{ entry.user_id }}</td>
-            <td>{{ entry.schedule }}</td>
-            <td>{{ entry.section }}</td>
+            <td>{{ entry.regime_id }}</td>
+            <td>{{ entry.schedule_id }}</td>
+            <td>{{ entry.section_id }}</td>
         </tr>
         {% endfor %}
     </table>

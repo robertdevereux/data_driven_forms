@@ -1,0 +1,14 @@
+﻿user_id,regime_id,schedule_id,section_id
+Robert,Regime_1,Schedule_1,Section_1
+Robert,Regime_1,Schedule_1,Section_2
+Robert,Regime_1,Schedule_2,Section_1
+Robert,Regime_1,Schedule_2,Section_3
+Robert,Regime_2,Schedule_1,Section_1
+Robert,Regime_2,Schedule_1,Section_2
+Robert,Regime_2,Schedule_3,Section_3
+Robert,Regime_3,Schedule_2,Section_1
+Robert,Regime_3,Schedule_2,Section_3
+Sumit,Regime_1,Schedule_2,Section_1
+Sumit,Regime_1,Schedule_2,Section_3
+Sumit,Regime_2,Schedule_3,Section_3
+Kevin,Regime_3,Schedule_2,Section_1

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Screen Questions</title>
+    <title>Questions</title>
 </head>
 <body>
-    <h1>Screen Questions</h1>
+    <h1>Questions</h1>
     <table border="1">
         <tr>
           <th>ID</th>
@@ -18,7 +18,7 @@
         </tr>
         {% for entry in dbtest_data %}
         <tr>
-            <td>{{ entry.id }}</td>
+            <td>{{ entry.question_id }}</td>
             <td>{{ entry.question_type }}</td>
             <td>{{ entry.guidance }}</td>
             <td>{{ entry.question_text }}</td>

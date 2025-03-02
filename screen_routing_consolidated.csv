@@ -1,9 +1,0 @@
-Service ID,Current ID,Answer Value,Next ID
-section_1,Q1,Male,Q2
-section_1,Q1,Female,Q3
-section_1,Q2,,Q3
-section_1,Q3,England; Wales,V1
-section_1,Q3,Scotland; Northern Ireland,END
-section_1,V1,,END
-section_5,Q1,,Q2
-section_5,Q2,,END
