@@ -1,0 +1,15 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <h2>User Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="user_id">Enter User ID:</label>
+        <input type="text" id="user_id" name="user_id" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+{% endblock %}

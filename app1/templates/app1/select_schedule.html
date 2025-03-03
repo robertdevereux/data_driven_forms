@@ -1,0 +1,34 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <a href="{% url 'select_regime' %}" class="govuk-back-link">Back</a>
+    <br>
+
+    <form method="POST" action="{% url 'select_schedule' %}">
+        {% csrf_token %}
+
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                <h2 class="govuk-fieldset__heading">Choose a schedule</h2>
+            </legend>
+
+            {% if schedules %}
+                <div class="govuk-radios">
+                    {% for schedule_id, schedule_name in schedules.items %}
+                        <div class="govuk-radios__item">
+                            <input class="govuk-radios__input" id="option{{ forloop.counter }}" name="selected_schedule" type="radio" value="{{ schedule_id }}">
+                            <label class="govuk-label govuk-radios__label" for="option{{ forloop.counter }}">
+                                {{ schedule_name }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="govuk-body">No schedules available.</p>
+            {% endif %}
+        </fieldset>
+
+        <br>
+        <button type="submit" class="govuk-button">Continue</button>
+    </form>
+{% endblock %}

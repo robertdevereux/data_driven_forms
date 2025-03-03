@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import select_regime, select_schedule, select_section, question_router, radio_view, text_view, checkbox_view, process_answer, completion_page, restart_process, user_login
+from .views import user_login, select_regime, select_schedule, select_section, question_router, radio_view, text_view, checkbox_view, process_answer, completion_page, restart_process
 from .views_data import upload_regimes, upload_schedules, upload_sections, upload_routing, upload_questions, upload_permissions, display_regimes, display_schedules, display_sections,display_routing,display_questions, display_permissions
 from . import views
 
@@ -19,7 +19,6 @@ urlpatterns = [
     path('display/sections/', display_sections, name='display_sections'),
     path('display/routing/', display_routing, name='display_routing'),
     path('display/questions/', display_questions, name='display_questions'),
-
 
     path('select_regime/', select_regime, name='select_regime'),
     path('select_schedule/', select_schedule, name='select_schedule'),
