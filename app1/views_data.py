@@ -1,8 +1,6 @@
-import csv, json, bleach
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+import csv
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from urllib.parse import urlencode
 from .models import Regime, Schedule,Section,Routing, Question, Permission
 
 def upload_regimes(request):
@@ -94,7 +92,6 @@ def upload_permissions(request):
         return redirect('upload_permissions')
 
     return render(request, 'app1/upload_csv.html', {'data_name':'Permission'})
-
 
 def display_regimes(request):
     data = Regime.objects.order_by('regime_id').all()

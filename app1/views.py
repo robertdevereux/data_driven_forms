@@ -3,176 +3,168 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from urllib.parse import urlencode
-from .models import Question, Routing, Section, Schedule, Regime, Permission
-
-def upload_sections(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        reader = csv.reader(file.read().decode('utf-8').splitlines())
-        next(reader)  # Skip header row
-
-        for row in reader:
-            section_id, section_name, schedule_ids = row[0], row[1], row[2]
-            section, created = Section.objects.update_or_create(
-                section_id=section_id,
-                defaults={"section_name": section_name}
-            )
-
-            # Link the section to schedules
-            for schedule_id in schedule_ids.split(';'):
-                schedule = Schedule.objects.filter(schedule_id=schedule_id.strip()).first()
-                if schedule:
-                    section.schedules.add(schedule)
-
-        messages.success(request, "Sections uploaded successfully!")
-        return redirect('upload_sections')
-
-    return render(request, 'app1/upload_csv.html', {'data_name':'Section'})
+from .models import ScreenQuestion, ScreenRouting, Service
 
 
-def upload_questions(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        reader = csv.reader(file.read().decode('utf-8').splitlines())
-        next(reader)  # Skip header row
-
-        for row in reader:
-            Question.objects.update_or_create(
-                question_id=row[0],
-                defaults={
-                    'question_type': row[1],
-                    'guidance': row[2],
-                    'question_text': row[3],
-                    'hint': row[4],
-                    'answer_type': row[5],
-                    'options': row[6],
-                    'parent_question_id': row[7] if row[7] else None
-                }
-            )
-
-        messages.success(request, "Questions uploaded successfully!")
-        return redirect('upload_questions')
-
-    return render(request, 'app1/upload_questions.html')
-
-def upload_routing(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        reader = csv.reader(file.read().decode('utf-8').splitlines())
-        next(reader)  # Skip header row
-
-        for row in reader:
-            section = get_object_or_404(Section, section_id=row[0])
-            current_question = get_object_or_404(Question, question_id=row[1])
-            next_question = get_object_or_404(Question, question_id=row[3]) if row[3] != "END" else None
-
-            QuestionRouting.objects.update_or_create(
-                section=section,
-                current_question=current_question,
-                answer_value=row[2] if row[2] else None,
-                defaults={'next_question': next_question, 'end_process': (row[3] == "END")}
-            )
-
-        messages.success(request, "Routing uploaded successfully!")
-        return redirect('upload_routing')
-
-    return render(request, 'app1/upload_routing.html')
-
-def display_questions(request):
-    data = Question.objects.order_by('question_id').all()
-    return render(request, 'app1/display_questions.html', {'dbtest_data': data})
-
-def display_routing(request):
-    data = QuestionRouting.objects.order_by('section', 'current_question').all()
-    return render(request, 'app1/display_routing.html', {'dbtest_data': data})
-
-def display_permissions(request):
-    data = Permission.objects.order_by('user_id','regime_id','schedule_id','section_id').all()
-    return render(request, 'app1/display_permissions.html', {'dbtest_data': data})
-
-def display_regimes(request):
-    data = Regime.objects.order_by('regime_id').all()
-    return render(request, 'app1/display_regimes.html', {'dbtest_data': data})
-
-def display_schedules(request):
-    data = Section.objects.all()
-    return render(request, 'app1/display_schedules.html', {'dbtest_data': data})
-
-def display_sections(request):
-    data = Section.objects.order_by('section_id').all()
-    return render(request, 'app1/display_sections.html', {'dbtest_data': data})
-
-def user_login(request):
+def select_service(request):
     if request.method == "POST":
-        user_id = request.POST.get("user_id").strip()
-        if not user_id:
-            messages.error(request, "Please enter a valid user ID.")
-            return redirect("user_login")
+        service_id = request.POST.get("service_id")  # Get selected service
+        print(f"DEBUG: Received service_id = {service_id}")  # Debugging
 
-        request.session["user_id"] = user_id
-        permissions = Permission.objects.filter(user_id=user_id)
-        request.session["permissions"] = list(permissions.values())
+        if not service_id:
+            return HttpResponse("No service selected", status=400)
 
-        return redirect("select_regime")
+        request.session["service_id"] = service_id
+        routing_data = list(ScreenRouting.objects.filter(service_id=service_id).values())
+        request.session["routing_table"] = routing_data
+        request.session.modified = True
 
-    return render(request, "app1/user.html")
+        print(f"Service {service_id} selected, loaded {len(routing_data)} routing rules.")
+        return redirect("question_router", question_id="Q1")
 
-
-def select_regime(request):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("user_login")
-
-    permissions = request.session.get("permissions", [])
-    print(f"DEBUG: Permissions from session: {permissions}")  # Check session data
-
-    regime_ids = {perm["regime_id"] for perm in permissions if perm.get("regime_id")}
-    print(f"DEBUG: Extracted regime IDs: {regime_ids}")  # Check extracted IDs
-
-    regimes = Regime.objects.filter(regime_id__in=regime_ids)
-    print(f"DEBUG: Retrieved regimes: {[r.regime_name for r in regimes]}")  # Check query results
-
-    if request.method == "POST":
-        regime_id = request.POST.get("regime_id")
-        if regime_id in regime_ids:
-            request.session["regime_id"] = regime_id
-            return redirect("select_schedule")
-        messages.error(request, "Invalid regime selection.")
-
-    return render(request, "app1/regime.html", {"regimes": regimes})
-
-
-def select_schedule(request):
-    return HttpResponse("Placeholder for selecting a schedule.")
-
-
-def select_section(request):
-    return HttpResponse("Placeholder for selecting a section.")
-
+    services = Service.objects.all()
+    return render(request, "app1/select_service.html", {"services": services})
 
 def question_router(request, question_id):
-    return HttpResponse(f"Routing to question {question_id}.")
+    question = get_object_or_404(ScreenQuestion, id=question_id)
 
+    # ✅ Use `question_type` to determine the correct screen type
+    if question.question_type == "radio":
+        return redirect("radio_view", question_id=question_id)
+    elif question.question_type == "text":
+        return redirect("text_view", question_id=question_id)
+    elif question.question_type == "checkbox":  # ✅ Correctly route to checkbox view
+        return redirect("checkbox_view", question_id=question_id)
+    else:
+        print(f"Unknown question type for {question_id}: {question.question_type}")
+        return redirect("completion_page")  # If `question_type` is unrecognized
 
 def radio_view(request, question_id):
-    return HttpResponse(f"Displaying radio question {question_id}.")
+    question = get_object_or_404(ScreenQuestion, id=question_id)
 
+    allowed_tags = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
+
+    return render(request, "app1/radio_template.html", {
+        "question_id": question_id,
+        "question_text": question.question_text,
+        "guidance": bleach.clean(question.guidance, tags=allowed_tags) if question.guidance else "",
+        "hint": bleach.clean(question.hint, tags=allowed_tags) if question.hint else "",
+        "options": question.options.split(";") if question.options else [],
+    })
 
 def text_view(request, question_id):
-    return HttpResponse(f"Displaying text question {question_id}.")
+    question = get_object_or_404(ScreenQuestion, id=question_id)
+
+    allowed_tags = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
+
+    return render(request, "app1/text_template.html", {
+        "question_id": question_id,
+        "question_text": question.question_text,
+        "guidance": bleach.clean(question.guidance, tags=allowed_tags) if question.guidance else "",
+        "hint": bleach.clean(question.hint, tags=allowed_tags) if question.hint else "",
+    })
 
 
 def checkbox_view(request, question_id):
-    return HttpResponse(f"Displaying checkbox question {question_id}.")
+    question = get_object_or_404(ScreenQuestion, id=question_id)
 
+    allowed_tags = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
+
+    return render(request, "app1/checkbox_template.html", {
+        "question_id": question_id,
+        "question_text": question.question_text,
+        "guidance": bleach.clean(question.guidance, tags=allowed_tags) if question.guidance else "",
+        "hint": bleach.clean(question.hint, tags=allowed_tags) if question.hint else "",
+        "options": question.options.split(";") if question.options else [],
+    })
 
 def process_answer(request, question_id):
-    return HttpResponse(f"Processing answer for {question_id}.")
+    if request.method == "POST":
+        question = get_object_or_404(ScreenQuestion, id=question_id)
 
+        # ✅ Use `question_type` to handle response correctly
+        if question.question_type == "checkbox":
+            user_response = request.POST.getlist("question")  # List of selections
+            user_response_str = "; ".join(user_response)  # Store as semicolon-separated string
+        else:
+            user_response = request.POST.get("question", "").strip()
+
+        print(f"User's answer for {question_id}: {user_response}")
+
+        # Store user response in session
+        if "user_answers" not in request.session:
+            request.session["user_answers"] = {}
+        request.session["user_answers"][question_id] = user_response
+        request.session.modified = True  # Save session updates
+
+        # ✅ Generate JSON string for all collected answers
+        json_data = json.dumps({
+            "service_id": request.session.get("service_id", "unknown_service"),
+            "responses": request.session["user_answers"]
+        }, indent=4)  # Pretty-print JSON for readability
+
+        # ✅ Store JSON in session for display on completion page
+        request.session["final_json"] = json_data
+
+        # Retrieve routing table
+        routing_table = request.session.get("routing_table", [])
+
+        # Determine next question
+        next_question_id = None
+        for route in routing_table:
+            if route["current_id"] == question_id:
+                if route["answer_value"]:  # Conditional routing
+                    allowed_answers = [ans.strip().lower() for ans in route["answer_value"].split(";")]
+                    if user_response.lower() in allowed_answers:
+                        next_question_id = route["next_id"]
+                        break
+                else:  # Default routing
+                    next_question_id = route["next_id"]
+
+        # ✅ If next_question_id is "END", redirect to the completion page
+        if next_question_id == "END":
+            return redirect("completion_page")
+
+        # ✅ Handle missing next question
+        if not next_question_id:
+            error_message = f"No valid next question found for '{question_id}' with answer '{user_response}'."
+            print(error_message)
+            from urllib.parse import urlencode
+            return redirect(f"/app1/completion/?{urlencode({'error_message': error_message})}")
+
+        return redirect("question_router", question_id=next_question_id)
+
+    return redirect("question_router", question_id=question_id)
 
 def completion_page(request):
-    return HttpResponse("Completion page placeholder.")
+    error_message = request.GET.get("error_message", "")  # Extract error message if any
+    final_json = request.session.get("final_json", "{}")  # Retrieve stored JSON
 
+    return render(request, "app1/completion.html", {
+        "error_message": error_message,
+        "final_json": final_json
+    })
 
 def restart_process(request):
-    return HttpResponse("Restarting process.")
+    # Remove stored user answers & JSON data
+    request.session.pop("user_answers", None)
+    request.session.pop("final_json", None)
+    request.session.pop("service_id", None)
+    request.session.pop("routing_table", None)
+
+    request.session.modified = True  # Ensure session is updated
+
+    print("Session cleared. Restarting process.")  # Debugging
+
+    return redirect("select_service")  # Redirect back to service selection
+
+def screen1(request):
+    return render(request, 'app1/screen1.html')
+
+def app1_home(request):
+    return HttpResponse("This is the home page of the app app1")
+
+def p2(request):
+    return HttpResponse("This is the 2nd page of the app app1")
+
+
