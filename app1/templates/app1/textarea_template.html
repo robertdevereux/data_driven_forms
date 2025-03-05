@@ -12,7 +12,7 @@
         {% csrf_token %}
 
         <!-- the question itself -->
-        <label class="govuk-label govuk-label--l" for="text-input">
+        <label class="govuk-label govuk-label--l" for="more-detail">
             {{ question_text }}
         </label>
 
@@ -22,13 +22,13 @@
         {% endif %}
 
         <!-- the space for an answer -->
-        <input class="govuk-input" id="text-input" name="question" type="text">
-        <br><br>
+        <textarea class="govuk-textarea" id="more-detail" name="question" rows="5" aria-describedby="more-detail-hint"></textarea>
 
-        <!-- button from GDS 3 March 2025 -->
-        <button type="submit" class="govuk-button" data-module="govuk-button">
-            Continue
-        </button>
+        <br><br>
+        <button type="submit" class="govuk-button">Continue</button>
     </form>
 {% endblock %}
+
+
+
 

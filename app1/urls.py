@@ -1,10 +1,12 @@
 from django.urls import path
-from .views import user_login, select_regime, select_schedule, select_section, question_router, radio_view, text_view, checkbox_view, process_answer, completion_page, restart_process
+from .views import consistency_check, user_login, select_regime, select_schedule, select_section, question_router, radio_view, text_view, textarea_view, checkbox_view, process_answer, completion_page, restart_process
 from .views_data import upload_regimes, upload_schedules, upload_sections, upload_routing, upload_questions, upload_permissions, display_regimes, display_schedules, display_sections,display_routing,display_questions, display_permissions
 from . import views
 
 urlpatterns = [
-    path('', views.user_login, name='user_login'),
+
+    path('', views.consistency_check, name='consistency_check'),
+    path('user_login', views.user_login, name='user_login'),
 
     path('upload/regimes/', upload_regimes, name='upload_regimes'),
     path('upload/schedules/', upload_schedules, name='upload_schedules'),
@@ -30,6 +32,7 @@ urlpatterns = [
     # Individual views for different question types
     path("question/<str:question_id>/radio/", radio_view, name="radio_view"),
     path("question/<str:question_id>/text/", text_view, name="text_view"),
+    path("question/<str:question_id>/textarea/", textarea_view, name="textarea_view"),
     path("question/<str:question_id>/checkbox/", checkbox_view, name="checkbox_view"),
 
     path("process/<str:question_id>/", process_answer, name="process_answer"),

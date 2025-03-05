@@ -7,7 +7,63 @@ from .models import Permission, Regime, Schedule, Section, Routing, Question
 
 ALLOWED_TAGS = ["b", "i", "u", "strong", "em", "h1", "h2", "h3", "p", "ul", "ol", "li", "br"]
 
+def consistency_check(request):
+
+    # ✅ Step 1: Retrieve all questions and routing data
+    question_ids = set(Question.objects.values_list("question_id", flat=True))
+    routing_data = list(Routing.objects.values("section_id", "current_question", "next_question", "answer_value"))
+
+    errors = []
+
+    # ✅ Step 2: Check (a) - Ensure all `current_question` and `next_question` exist in `Question`
+    for route in routing_data:
+        section_id = route["section_id"]
+        current_q = route["current_question"]
+        next_q = route["next_question"]
+
+        if current_q not in question_ids:
+            errors.append(
+                f"Section '{section_id}': Routing error - current_question '{current_q}' does not exist in Question table.")
+
+        if next_q and next_q != "END" and next_q not in question_ids:
+            errors.append(
+                f"Section '{section_id}': Routing error - next_question '{next_q}' does not exist in Question table.")
+
+    # ✅ Step 3: Check (b) - Ensure every `answer_value` in Routing exists in `Question.options`
+    question_options = {
+        q.question_id: set(q.options.split("; ")) if q.options else set()  # Convert options to set for easy checking
+        for q in Question.objects.all()
+    }
+
+    for route in routing_data:
+        section_id = route["section_id"]
+        current_q = route["current_question"]
+        answer_value = route["answer_value"]
+
+        if answer_value and current_q in question_options:
+            valid_options = question_options[current_q]  # Get allowed options for this question
+            provided_answers = set(answer_value.split("; "))  # Split Routing's answer_value into a set
+
+            if not provided_answers.issubset(valid_options):  # Check if all answers are valid
+                errors.append(
+                    f"Section '{section_id}': Routing error - current_question '{current_q}' has invalid answer_value '{answer_value}'. "
+                    f"Valid options: {valid_options}"
+                )
+
+    # ✅ Step 4: If errors exist, exit and show them
+    print("Errors",errors)
+    if errors:
+
+        return HttpResponse(
+            "<h3>Database Consistency Check Failed</h3>"
+            "<p>The question set and routing set are inconsistent. Fix the following issues:</p>"
+            "<ul>" + "".join([f"<li>{error}</li>" for error in errors]) + "</ul>"
+        )
+
+    return redirect('user_login')
+
 def user_login(request):
+
     message = None  # Default message
 
     # on user completion of login.html
@@ -68,7 +124,7 @@ def select_schedule(request):
         request.session["selected_schedule_id"] = selected_schedule_id # Store selected schedule in session
         request.session.modified = True
         print("****************** Selected schedule was", selected_schedule_id, " ", schedules[selected_schedule_id])
-        print("DEBUG: Selected schedule:", request.session.get("selected_schedule"))
+        print("DEBUG: Selected schedule:", request.session.get("selected_schedule_id"))
         return redirect("select_section") # Redirect to the section selection step
 
     # Preparation of select_schedule.html
@@ -97,6 +153,7 @@ def select_section(request):
     # On user completion of select_section.html
     if request.method == "POST":
         selected_section_id = request.POST.get("selected_section", "").strip()  # Capture form data
+        print("Selected section from html:" , selected_section_id)
         sections = request.session.get("sections", {})  # Retrieve stored sections from session
 
         if not selected_section_id or selected_section_id not in sections:
@@ -139,7 +196,7 @@ def select_section(request):
     permissions = request.session.get("permissions", [])
     selected_regime_id = request.session.get("selected_regime_id", "")
     selected_schedule_id = request.session.get("selected_schedule_id", "")
-    print("*************************", permissions, selected_regime_id, selected_schedule_id)
+    print("******* PREPARING FOR SECTION HTML: ", permissions, selected_regime_id, selected_schedule_id)
 
     if not permissions or not selected_regime_id or not selected_schedule_id:
         return HttpResponse("Problem in select_section")  # Redirect if data is missing
@@ -149,7 +206,7 @@ def select_section(request):
         for perm in permissions
         if perm["regime_id"] == selected_regime_id and perm["schedule_id"] == selected_schedule_id
     }
-
+    print("Section_ids: ", section_ids)
     sections = {  # Fetch relevant sections from Section model
         str(section.section_id): section.section_name
         for section in Section.objects.filter(section_id__in=section_ids)
@@ -168,11 +225,13 @@ def question_router(request, question_id):
         return HttpResponseNotFound(f"Question data for question id {question_id} not found in session.")  # ✅ Fixed error
 
     # ✅ Use `question_type` to determine the correct screen type
-    if question["question_type"] == "radio":
+    if question["question_type"].lower() == "radio":
         return redirect("radio_view", question_id=question_id)
-    elif question["question_type"] == "text":
+    elif question["question_type"].lower() == "text":
         return redirect("text_view", question_id=question_id)
-    elif question["question_type"] == "checkbox":
+    elif question["question_type"].lower() == "textarea":
+        return redirect("textarea_view", question_id=question_id)
+    elif question["question_type"].lower() == "checkbox":
         return redirect("checkbox_view", question_id=question_id)
     else:
         print(f"Unknown question type for {question_id}: {question['question_type']}")
@@ -211,6 +270,22 @@ def text_view(request, question_id):
         "hint": bleach.clean(question["hint"], tags=ALLOWED_TAGS) if question["hint"] else "",
     })
 
+def textarea_view(request, question_id):
+    question = request.session["question_table"].get(str(question_id))
+
+    if not question:
+        return HttpResponseNotFound(f"Question data for question id {question_id} not found in session.")
+
+    print(f"Question ID: {question_id}")
+    print(f"Stored question data: {question}")
+
+    return render(request, "app1/textarea_template.html", {
+        "question_id": question_id,
+        "question_text": question["text"],
+        "guidance": bleach.clean(question["guidance"], tags=ALLOWED_TAGS) if question["guidance"] else "",
+        "hint": bleach.clean(question["hint"], tags=ALLOWED_TAGS) if question["hint"] else "",
+    })
+
 def checkbox_view(request, question_id):
     question = request.session["question_table"].get(str(question_id))
 
@@ -227,11 +302,6 @@ def checkbox_view(request, question_id):
         "hint": bleach.clean(question["hint"], tags=ALLOWED_TAGS) if question["hint"] else "",
         "options": question["options"].split(";") if question.get("options") else [],
     })
-
-import json
-from django.shortcuts import redirect
-from django.http import HttpResponseNotFound
-from urllib.parse import urlencode
 
 def process_answer(request, question_id):
     if request.method == "POST":
@@ -307,8 +377,15 @@ def completion_page(request):
     })
 
 def restart_process(request):
-    # ✅ Completely clear session for a fresh start
+    print("******** SESSION DATA BEFORE FLUSH ********")
+    print(request.session.items())  # Prints all session key-value pairs
+    request.session.clear()
     request.session.flush()
+    request.session.create()  # Ensures a new session ID is generated
 
-    return redirect("user_login")  # Redirect to the start
+    print("******** SESSION DATA AFTER FLUSH ********")
+    print(request.session.items())  # Prints all session key-value pairs
+
+    return redirect("user_login")
+
 
