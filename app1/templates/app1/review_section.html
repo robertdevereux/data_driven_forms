@@ -1,0 +1,78 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+
+<style>
+  .key-column.govuk-summary-list__key {
+    width: 35%;
+    font-size: 0.875rem;
+  }
+
+  .value-column.govuk-summary-list__value {
+    width: 50%;
+    font-size: 0.875rem;
+  }
+
+  .action-column.govuk-summary-list__actions {
+    width: 15%;
+  }
+</style>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <div class="govuk-heading-l">
+      Deceased's details
+    </div>
+
+    <dl class="govuk-summary-list">
+
+      {% for row in rows %}
+      <div class="govuk-summary-list__row">
+
+        <dt class="govuk-summary-list__key key-column">
+          {{ row.question }}
+        </dt>
+
+        <dd class="govuk-summary-list__value value-column">
+          {{ row.answer }}
+        </dd>
+
+        <dd class="govuk-summary-list__actions action-column">
+          <a class="govuk-link govuk-body-s" href="{% url 'question_router' row.question_id %}">
+            Change<span class="govuk-visually-hidden"> {{ row.question }}</span>
+          </a>
+        </dd>
+
+      </div>
+      {% endfor %}
+
+      <!-- ✅ Confirm button aligned under 'Change' column -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key"></dt>
+        <dd class="govuk-summary-list__value"></dd>
+        <dd class="govuk-summary-list__actions">
+          <form method="post" action="{% url 'completion_page' %}">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="govuk-button govuk-button--success govuk-!-margin-bottom-0"
+              style="float: right;"
+            >
+              Confirm
+            </button>
+          </form>
+        </dd>
+      </div>
+
+    </dl>
+
+  </div>
+</div>
+
+
+
+
+
+
+{% endblock %}

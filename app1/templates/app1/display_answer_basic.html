@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AnswerBasic</title>
+</head>
+<body>
+    <h1>AnswerBasic</h1>
+    <table border="1">
+        <tr>
+            <th>User ID</th>
+            <th>Regime ID</th>
+          <th>Question ID </th>
+          <th>Answer</th>
+            <th>Created</th>
+        </tr>
+        {% for entry in dbtest_data %}
+        <tr>
+            <td>{{ entry.user_id }}</td>
+            <td>{{ entry.regime_id }}</td>
+            <td>{{ entry.question_id }}</td>
+            <td>{{ entry.answer }}</td>
+            <td>{{ entry.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><br>
+    <a href="../../select_service">Return to service selection</a>
+</body>
+</html>

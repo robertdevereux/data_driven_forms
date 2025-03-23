@@ -1,0 +1,31 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+<legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+    Create New Regime
+</legend>
+<form method="post">
+    {% csrf_token %}
+    <br><br>
+    <label for="id_regime_id">Regime ID:</label>
+    {{ form.regime_id }}
+    <br><br>
+    <label for="id_regime_name">Regime Name:</label>
+    {{ form.regime_name }}
+    <br><br>
+    <button type="submit" class="govuk-button" data-module="govuk-button">
+            Save regime
+    </button>
+    <br><br>
+
+</form>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<a href="{% url 'user_login' %}">Restart</a>
+{% endblock %}

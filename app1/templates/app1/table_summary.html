@@ -1,0 +1,28 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+<legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+    {{ selected_section.name }}
+</legend>
+
+    {% if selected_section.records == 0 %}
+        <p>No records entered so far</p>
+        <br><br>
+        <a href="{% url 'question_router' selected_section.first_question  %}" class="govuk-back-link">
+            Add records
+        </a>
+        <br>
+        <a href="{% url 'select_section' %}" class="govuk-back-link">Continue</a>
+    {% else %}
+        <p>{{ selected_section.records }} records entered so far</p>
+        <br><br>
+        <a href="{% url 'question_router'  selected_section.first_question  %}" class="govuk-back-link">
+            Add more records
+        </a>
+        <br>
+        <a href="{% url 'select_section' %}" class="govuk-back-link">Continue</a>
+
+    {% endif %}
+
+
+{% endblock %}

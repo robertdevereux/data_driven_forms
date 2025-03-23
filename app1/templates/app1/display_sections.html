@@ -7,15 +7,17 @@
     <h1>Sections</h1>
     <table border="1">
         <tr>
-          <th>Schedule ID</th>
-          <th>Section ID</th>
-          <th>Section name in this schedule</th>
+            <th>Schedule ID</th>
+            <th>Section ID</th>
+            <th>Section name in this schedule</th>
+            <th>Section type</th>
         </tr>
         {% for entry in dbtest_data %}
         <tr>
             <td>{{ entry.schedule_id }}</td>
             <td>{{ entry.section_id }}</td>
             <td>{{ entry.section_name }}</td>
+            <td>{{ entry.section_type }}</td>
         </tr>
         {% endfor %}
     </table>

@@ -3,7 +3,8 @@ import csv, re
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Regime, Schedule,Section,Routing, Question, Permission
+from .models import Regime, Schedule,Section,Routing, Question, Permission, AnswerBasic, AnswerTable
+from .forms import RegimeForm, ScheduleForm, SectionForm  # We'll create these forms
 
 def upload_regimes(request):
     if request.method == 'POST' and request.FILES.get('file'):
@@ -37,7 +38,7 @@ def upload_sections(request):
         reader = csv.reader(file.read().decode('utf-8').splitlines())
         next(reader)  # Skip header row
         for row in reader:
-            p=Section(schedule_id=row[0],section_id=row[1],section_name=row[2])
+            p=Section(schedule_id=row[0],section_id=row[1],section_name=row[2], section_type=0)
             p.save()
         messages.success(request, "Sections uploaded successfully!")
         return redirect('upload_sections')
@@ -57,95 +58,16 @@ def upload_routing(request):
 
     return render(request, 'app1/upload_csv.html', {'data_name':'Routing'})
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-import csv
-from .models import Question
-
-import csv
-import re
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Question
-
-
 def upload_questions(request):
     if request.method == 'POST' and request.FILES.get('file'):
         file = request.FILES['file']
 
         # Decode file and ensure correct parsing with quoted fields
         reader = csv.reader(file.read().decode('utf-8', errors='ignore').splitlines(), quotechar='"')
-
         next(reader)  # Skip header row
-
         for row in reader:
             row = (row + [None] * 8)[:8]  # Ensure row has at least 8 columns
-
-            # Inline cleaning: Remove control characters & trim whitespace
             row = [re.sub(r'[\x00-\x1F\x7F-\x9F]', '', value).strip() if value else None for value in row]
-            '''
-            if len(row) != 8:
-                print(f"❌ Invalid row length ({len(row)} columns instead of 8): {row}")
-                return HttpResponse("Invalid row format - Incorrect column count")
-
-            if (
-                    (row[0] and len(row[0].strip()) > 50) or
-                    (row[3] and len(row[3].strip()) > 255) or
-                    (row[4] and len(row[4].strip()) > 20) or
-                    (row[6] and len(row[6].strip()) > 20)
-            ):
-                print("❌ FIELD LENGTH ERROR ❌")
-                print(f"Raw row: {row}")
-                print(f"QID: {row[0]} ({len(row[0].strip()) if row[0] else 0})")
-                print(f"Hint: {row[3]} ({len(row[3].strip()) if row[3] else 0})")
-                print(f"Question Type: {row[4]} ({len(row[4].strip()) if row[4] else 0})")
-                print(f"Answer Type: {row[6]} ({len(row[6].strip()) if row[6] else 0})")
-                return HttpResponse("Field lengths out of range")
-
-            # Skip rows with missing required fields
-            if not row[0] or not row[2] or not row[4] or not row[6]:  # Ensure `question_type` is not null
-                print("Critical fields missing: ", row)
-                return HttpResponse("Critical fields missing")
-
-            if row[4] and row[4].strip().lower() in ["radio", "checkbox"]:
-                if not row[5] or len(row[5].strip()) == 0:
-                    print("❌ ERROR: Radio or checkbox question missing options.")
-                    print(f"Debug Options: '{row[5]}' (Length: {len(row[5])})")
-                    return HttpResponse("Radio or checkbox question without answer options")
-
-            print("************* INSERTING INTO DATABASE *************")
-            print(f"Row Length: {len(row)}, Expected: 8")
-            print(f"Row Data: {row}")
-            print(f"QID: '{row[0]}'")
-            print(f"Guidance: '{row[1]}'")
-            print(f"Question Text: '{row[2]}'")
-            print(f"Hint: '{row[3]}'")
-            print(f"Question Type: '{row[4]}' (Length: {len(row[4]) if row[4] else 0})")
-            print(f"Options: '{row[5]}'")
-            print(f"Answer Type: '{row[6]}' (Length: {len(row[6]) if row[6] else 0})")
-            print(f"Parent Question ID: '{row[7]}'")
-            print(f"Options (ASCII): {[ord(c) for c in row[5]]}" if row[5] else "Options is empty!")
-
-            # Verify field mapping before saving
-            if len(row[4]) > 20 or len(row[6]) > 20:
-                print("❌ Field length too long before saving. Investigate CSV column mapping.")
-                return HttpResponse("Field length validation failed!")
-
-            
-            Question.objects.update_or_create(
-                question_id=row[0],
-                defaults={
-                    'guidance': row[1],
-                    'question_text': row[2],
-                    'hint': row[3],
-                    'question_type': row[4],
-                    'answer_type': row[5],
-                    'options': row[6] if row[6] else None,
-                    'parent_question_id': row[7] if row[7] else None
-                }
-            )
-            '''
-
             mapped_data = {
                 'guidance': row[1] if row[1] else None,
                 'question_text': row[2],
@@ -155,28 +77,15 @@ def upload_questions(request):
                 'answer_type': row[6],  # Double-checking if row[6] is correct
                 'parent_question_id': row[7] if row[7] else None
             }
-            '''
-            print("************* FINAL MAPPED DATA BEFORE SAVE *************")
-            for key, value in mapped_data.items():
-                print(f"{key}: {value} (Length: {len(value) if value else 0})")
-
-            # 🚨 Block insertion if any value is too long
-            if len(row[4]) > 20 or len(row[6]) > 20:
-                print(
-                    f"❌ ERROR: Field too long: QT='{row[4]}' (Length {len(row[4])}), AT='{row[6]}' (Length {len(row[6])})")
-                return HttpResponse("Field length validation failed!")
-            '''
-            # Perform the database insertion
             try:
                 Question.objects.update_or_create(question_id=row[0], defaults=mapped_data)
             except:
                 print(mapped_data)
 
-        messages.success(request, "Questions uploaded successfully!")
+        messages.success(request, "Questions uploaded successfully! Any errors printed in console")
         return redirect('upload_questions')
 
     return render(request, 'app1/upload_questions.html')
-
 
 def upload_permissions(request):
     if request.method == 'POST' and request.FILES.get('file'):
@@ -190,6 +99,45 @@ def upload_permissions(request):
         return redirect('upload_permissions')
 
     return render(request, 'app1/upload_csv.html', {'data_name':'Permission'})
+
+def new_regime(request):
+    """ View to create a new regime """
+    if request.method == "POST":
+        form = RegimeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "New regime created successfully!")
+            return redirect("new_regime")  # Redirect to the same page after success
+    else:
+        form = RegimeForm()
+
+    return render(request, "app1/new_regime.html", {"form": form})
+
+def new_schedule(request):
+    """ View to create a new schedule """
+    if request.method == "POST":
+        form = ScheduleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "New schedule created successfully!")
+            return redirect("new_schedule")
+    else:
+        form = ScheduleForm()
+
+    return render(request, "app1/new_schedule.html", {"form": form})
+
+def new_section(request):
+    """ View to create a new section """
+    if request.method == "POST":
+        form = SectionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "New section created successfully!")
+            return redirect("new_section")
+    else:
+        form = SectionForm()
+
+    return render(request, "app1/new_section.html", {"form": form})
 
 def display_regimes(request):
     data = Regime.objects.order_by('regime_id').all()
@@ -212,8 +160,84 @@ def display_questions(request):
     return render(request, 'app1/display_questions.html', {'dbtest_data': data})
 
 def display_permissions(request):
-    data = Permission.objects.order_by('user_id','regime_id','schedule_id','section_id').all()
+    data = Permission.objects.order_by('user_id','section_id').all()
     return render(request, 'app1/display_permissions.html', {'dbtest_data': data})
 
+def display_answer_basic(request):
+    data = AnswerBasic.objects.order_by('user_id','regime_id','question_id','answer','created_at').all()
+    return render(request, 'app1/display_answer_basic.html', {'dbtest_data': data})
 
+from django.http import HttpResponse
+from .models import Regime, Schedule, Section, User, Permission
+
+def load_dummy_data(request):
+    # --- Regimes ---
+    regimes = [
+        Regime(regime_id="HMRC_IHT", regime_name="HMRC – Inheritance Tax"),
+        Regime(regime_id="DWP_UC", regime_name="DWP – Universal Credit"),
+    ]
+    Regime.objects.bulk_create(regimes, ignore_conflicts=True)
+
+    # --- Schedules ---
+    schedules = [
+        Schedule(schedule_id="IHT_bank", schedule_name="Bank Accounts", regime_id="HMRC_IHT"),
+        Schedule(schedule_id="IHT_property", schedule_name="Property & Assets", regime_id="HMRC_IHT"),
+        Schedule(schedule_id="UC_family", schedule_name="Household & Family", regime_id="DWP_UC"),
+        Schedule(schedule_id="UC_housing", schedule_name="Housing Costs", regime_id="DWP_UC"),
+    ]
+    Schedule.objects.bulk_create(schedules, ignore_conflicts=True)
+
+    # --- Sections ---
+    sections = [
+        Section(section_id="IHT_bank_UKbank", section_name="UK Bank Accounts", schedule_id="IHT_bank"),
+        Section(section_id="IHT_bank_NS", section_name="National Savings & Investments", schedule_id="IHT_bank"),
+        Section(section_id="IHT_property_home", section_name="Main Residence", schedule_id="IHT_property"),
+        Section(section_id="IHT_property_other", section_name="Other Properties", schedule_id="IHT_property"),
+        Section(section_id="UC_family_children", section_name="Children and Dependents", schedule_id="UC_family"),
+        Section(section_id="UC_family_income", section_name="Partner Income", schedule_id="UC_family"),
+        Section(section_id="UC_housing_rent", section_name="Rent and Tenancy", schedule_id="UC_housing"),
+        Section(section_id="UC_housing_bills", section_name="Utility Bills", schedule_id="UC_housing"),
+    ]
+    Section.objects.bulk_create(sections, ignore_conflicts=True)
+
+    # --- Users ---
+    users = [
+        User(user_id="user_alice", user_name="Alice Johnson"),        # Partial IHT
+        User(user_id="user_bob", user_name="Bob Smith"),              # Partial UC
+        User(user_id="user_carla", user_name="Carla Hughes"),        # Full IHT
+        User(user_id="user_dan", user_name="Dan Patel"),             # Full UC
+        User(user_id="user_eve", user_name="Eve Miller"),            # Full ALL
+    ]
+    User.objects.bulk_create(users, ignore_conflicts=True)
+
+    # --- Permissions ---
+    permissions = [
+        # Partial access
+        Permission(user_id="user_alice", section_id="IHT_bank_UKbank"),
+        Permission(user_id="user_alice", section_id="IHT_bank_NS"),
+        Permission(user_id="user_bob", section_id="UC_family_income"),
+        Permission(user_id="user_bob", section_id="UC_housing_rent"),
+    ]
+
+    # Full access for Carla (HMRC_IHT)
+    iht_sections = Section.objects.filter(schedule__regime_id="HMRC_IHT")
+    permissions += [
+        Permission(user_id="user_carla", section=section) for section in iht_sections
+    ]
+
+    # Full access for Dan (DWP_UC)
+    uc_sections = Section.objects.filter(schedule__regime_id="DWP_UC")
+    permissions += [
+        Permission(user_id="user_dan", section=section) for section in uc_sections
+    ]
+
+    # Full access for Eve (all sections)
+    all_sections = Section.objects.all()
+    permissions += [
+        Permission(user_id="user_eve", section=section) for section in all_sections
+    ]
+
+    Permission.objects.bulk_create(permissions, ignore_conflicts=True)
+
+    return HttpResponse("Dummy data loaded successfully.")
 

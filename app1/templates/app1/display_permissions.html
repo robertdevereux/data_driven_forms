@@ -8,15 +8,11 @@
     <table border="1">
         <tr>
           <th>User ID</th>
-          <th>Regime</th>
-          <th>Schedule</th>
           <th>Section</th>
         </tr>
         {% for entry in dbtest_data %}
         <tr>
             <td>{{ entry.user_id }}</td>
-            <td>{{ entry.regime_id }}</td>
-            <td>{{ entry.schedule_id }}</td>
             <td>{{ entry.section_id }}</td>
         </tr>
         {% endfor %}

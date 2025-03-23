@@ -1,0 +1,70 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+
+<style>
+  .id-column {
+    width: 10%;
+    font-size: 0.875rem;
+  }
+
+  .key-column.govuk-summary-list__key {
+    width: 35%;
+    font-size: 0.875rem;
+  }
+
+  .value-column.govuk-summary-list__value {
+    width: 40%;
+    font-size: 0.875rem;
+  }
+
+  .action-column.govuk-summary-list__actions {
+    width: 15%;
+  }
+</style>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+
+    <div class="govuk-heading-l">
+      Deceased's details
+    </div>
+
+    <dl class="govuk-summary-list">
+
+      {% for row in rows %}
+      <div class="govuk-summary-list__row">
+
+        <!-- New: Question ID column -->
+        <dt class="govuk-summary-list__key id-column">
+          {{ row.question_id }}
+        </dt>
+
+        <!-- Question label -->
+        <dt class="govuk-summary-list__key key-column">
+          {{ row.question }}
+        </dt>
+
+        <!-- Answer -->
+        <dd class="govuk-summary-list__value value-column">
+          {{ row.answer }}
+        </dd>
+
+        <!-- Change link -->
+        <dd class="govuk-summary-list__actions action-column">
+          <a class="govuk-link govuk-body-s" href="{% url 'question_router' row.question_id %}">
+            Change<span class="govuk-visually-hidden"> {{ row.question }}</span>
+          </a>
+        </dd>
+
+      </div>
+      {% endfor %}
+
+    </dl>
+
+  </div>
+</div>
+
+
+
+{% endblock %}

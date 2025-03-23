@@ -25,7 +25,11 @@
             <div class="govuk-checkboxes">
                 {% for option in options %}
                     <div class="govuk-checkboxes__item">
-                        <input class="govuk-checkboxes__input" id="option{{ forloop.counter }}" name="question" type="checkbox" value="{{ option }}">
+
+                        <input class="govuk-checkboxes__input" id="option{{ forloop.counter }}" name="question" type="checkbox" value="{{ option }}"
+                            {% if option in previous_answers %}
+                               checked
+                            {% endif %}>
                         <label class="govuk-label govuk-checkboxes__label" for="option{{ forloop.counter }}">
                             {{ option }}
                         </label>

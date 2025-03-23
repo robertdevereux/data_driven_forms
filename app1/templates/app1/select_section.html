@@ -18,18 +18,19 @@
 
             {% if sections %}
                 <div class="govuk-radios">
-                    {% for section_id, section_name in sections.items %}
-                        <div class="govuk-radios__item">
-                            <input class="govuk-radios__input" id="option{{ forloop.counter }}" name="selected_section" type="radio" value="{{ section_id }}">
-                            <label class="govuk-label govuk-radios__label" for="option{{ forloop.counter }}">
-                                {{ section_name }}
-                            </label>
-                        </div>
-                    {% endfor %}
+                {% for section in sections %}
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input" id="option{{ forloop.counter }}" name="selected_section" type="radio" value="{{ section.section_id }}">
+                        <label class="govuk-label govuk-radios__label" for="option{{ forloop.counter }}">
+                            {{ section.section_name }}
+                        </label>
+                    </div>
+                {% endfor %}
                 </div>
             {% else %}
                 <p class="govuk-body">No sections available.</p>
             {% endif %}
+
         </fieldset>
         <br>
         <button type="submit" class="govuk-button">Continue</button>

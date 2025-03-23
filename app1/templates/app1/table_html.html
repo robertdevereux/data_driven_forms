@@ -1,0 +1,34 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <a href="{{ previous_question_url }}" class="govuk-back-link">Back</a>
+    <br>
+    <!-- any guidance -->
+
+    {% if guidance %}
+        {{ guidance|safe }}
+    {% endif %}
+
+    <form method="POST" action="{% url 'process_answer' question_id=question_id %}">
+        {% csrf_token %}
+
+        <!-- the question itself -->
+        <label class="govuk-label govuk-label--l" for="text-input">
+            {{ question_text }}
+        </label>
+
+        <!-- any hint -->
+        {% if hint %}
+            <p class="govuk-hint">{{ hint|safe }}</p>
+        {% endif %}
+
+        <!-- the space for an answer -->
+        <input class="govuk-input" id="text-input" name="question" type="text">
+        <br><br>
+
+        <!-- button from GDS 3 March 2025 -->
+        <button type="submit" class="govuk-button" data-module="govuk-button">
+            Continue
+        </button>
+    </form>
+{% endblock %}

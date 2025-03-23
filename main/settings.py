@@ -108,12 +108,12 @@ else:
     logging.debug("Running in local environment, using local database settings.")
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'data_driven_forms',
             'USER': 'robert',
             'PASSWORD': 'downingstreet',
             'HOST': 'localhost',
-            'PORT': '',
+            'PORT': '5432',
         }
     }
 
