@@ -170,11 +170,12 @@ def display_answer_basic(request):
 from django.http import HttpResponse
 from .models import Regime, Schedule, Section, User, Permission
 
-def load_dummy_data_1(request):
+def load_dummy_data(request):
     # --- Regimes ---
     regimes = [
         Regime(regime_id="HMRC_IHT", regime_name="HMRC – Inheritance Tax"),
-        Regime(regime_id="DWP_UC", regime_name="DWP – Universal Credit"),
+        Regime(regime_id="DWP_UC",   regime_name="DWP – Universal Credit"),
+        Regime(regime_id="DWP_FG",   regime_name="DWP – Funeral Grant")
     ]
     Regime.objects.bulk_create(regimes, ignore_conflicts=True)
 
@@ -197,6 +198,7 @@ def load_dummy_data_1(request):
         Section(section_id="UC_family_income", section_name="Partner Income", schedule_id="UC_family"),
         Section(section_id="UC_housing_rent", section_name="Rent and Tenancy", schedule_id="UC_housing"),
         Section(section_id="UC_housing_bills", section_name="Utility Bills", schedule_id="UC_housing"),
+        Section(section_id="FG_details",section_name="Funeral grant form", regime_id="DWP_FG")
     ]
     Section.objects.bulk_create(sections, ignore_conflicts=True)
 
@@ -239,26 +241,6 @@ def load_dummy_data_1(request):
 
     Permission.objects.bulk_create(permissions, ignore_conflicts=True)
 
-    return HttpResponse("Dummy data loaded successfully.")
-
-def load_dummy_data(request):
-    # --- Add Simple Regime ---
-    simple_regime = Regime(regime_id="DWP_FG", regime_name="DWP – Funeral Grant")
-    Regime.objects.get_or_create(regime_id="DWP_FG", defaults={"regime_name": "DWP – Funeral Grant"})
-
-    # --- Add Section for Simple Regime (no schedule) ---
-    Section.objects.get_or_create(
-        section_id="FG_details",
-        defaults={
-            "section_name": "Funeral grant form",
-            "regime_id": "DWP_FG"  # direct link to regime
-        }
-    )
-
-    # --- Give Eve permission for simple regime too
-    Permission.objects.get_or_create(user_id="user_eve", section_id="FG_details")
-
-def load_dummy_data_2(request):
     questions = [
         Question(
             question_id="FG_Q1",
@@ -295,22 +277,22 @@ def load_dummy_data_2(request):
 
     routings = [
         Routing(
-            section_id="FG_onepage",
+            section_id="FG_details",
             current_question="FG_Q1",
             next_question="FG_Q2"
         ),
         Routing(
-            section_id="FG_onepage",
+            section_id="FG_details",
             current_question="FG_Q2",
             next_question="FG_Q3"
         ),
         Routing(
-            section_id="FG_onepage",
+            section_id="FG_details",
             current_question="FG_Q3",
             next_question="FG_Q4"
         ),
         Routing(
-            section_id="FG_onepage",
+            section_id="FG_details",
             current_question="FG_Q4",
             next_question="END"
         )

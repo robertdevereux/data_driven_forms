@@ -12,11 +12,11 @@ def model_to_dict(model, unique_field):
 '''
 
 def select_schedule(request):
-    user_id = request.session.get("user_id")
+
+    user_id = request.session.get("select_dict", {}).get("user_id")
     regime_id = request.session.get("select_dict", {}).get("regime_id")
     regime_name = request.session.get("select_dict", {}).get("regime_name")
     section_ids = request.session.get("section_ids", [])
-    print("A: ",user_id,regime_id,section_ids)
 
     # Get schedules the user can access under this regime
     schedule_ids = (
@@ -46,12 +46,12 @@ def select_schedule(request):
     return render(request, "app1/select_schedule_2.html", {"progress": progress, 'regime_name':regime_name})
 
 def select_section(request, schedule_id=None):
+
     # Step 1: Get context from session
-    user_id = request.session.get("user_id")
-    section_ids = request.session.get("section_ids", [])
-    select_dict = request.session.get("select_dict", {})
+    user_id = request.session.get("select_dict", {}).get("user_id")
     regime_id = request.session.get("select_dict", {}).get("regime_id")
     regime_name = request.session.get("select_dict", {}).get("regime_name")
+    section_ids = request.session.get("section_ids", [])
 
     # Step 2: Get permitted sections for this schedule
     sections = Section.objects.filter(

@@ -101,8 +101,10 @@ def process_answer(request, question_id):
 
         # Get session context
         select_dict = request.session.get("select_dict")
-        user_id = request.session.get("user_id")
+        print("In process_answer. select_dict=",select_dict)
+        user_id = select_dict["user_id"]
         regime_id = select_dict["regime_id"]
+        regime_name = select_dict["regime_name"]
         schedule_id = select_dict["schedule_id"]
         section_id = select_dict["section_id"]
 
@@ -178,8 +180,10 @@ def process_answer(request, question_id):
     return redirect("question_router", question_id=question_id)
 
 def review_section(request):
-    user_id = request.session.get("user_id")
-    regime_id = request.session.get("select_dict", {}).get("regime_id")
+
+    select_dict = request.session.get("select_dict")
+    user_id = select_dict["user_id"]
+    regime_id = select_dict["regime_id"]
     asked_ids = request.session.get("asked_ids", [])
 
     # Clean up obsolete answers (not in asked_ids)
