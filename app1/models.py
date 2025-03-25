@@ -24,23 +24,38 @@ class Schedule(models.Model):
     def __str__(self):
         return self.schedule_name
 
-### 🔹 Bottom Level: Section (A collection of questions in a logical order eg 'menu' item) ###
+### 🔹 Bottom Level: Section (may belong to a Schedule or directly to a Regime) ###
 class Section(models.Model):
     section_id = models.CharField(max_length=100, primary_key=True)
     section_name = models.CharField(max_length=255)
     section_type = models.IntegerField(default=0)
     section_records = models.IntegerField(default=0)
 
-    # Link to Schedule
+    # Optional link to Schedule
     schedule = models.ForeignKey(
         Schedule,
         to_field="schedule_id",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    # Optional direct link to Regime
+    regime = models.ForeignKey(
+        'Regime',
+        to_field="regime_id",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
 
     def __str__(self):
         return self.section_name
 
+    def get_regime(self):
+        if self.schedule:
+            return self.schedule.regime
+        return self.regime
 
 ### 🔹 Master List of Questions (Independent of Sections) ###
 class Question(models.Model):

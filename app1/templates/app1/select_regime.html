@@ -18,12 +18,12 @@
 
             {% if regimes %}
                 <div class="govuk-radios">
-                    {% for regime_id, regime_name in regimes.items %}
+                    {% for regime in regimes %}
                         <div class="govuk-radios__item">
                             <input class="govuk-radios__input" id="option{{ forloop.counter }}"
-                                   name="selected_regime" type="radio" value="{{ regime_id }}">
+                                   name="selected_regime" type="radio" value="{{ regime.id }}">
                             <label class="govuk-label govuk-radios__label" for="option{{ forloop.counter }}">
-                                {{ regime_name }}
+                                {{ regime.name }}
                             </label>
                         </div>
                     {% endfor %}

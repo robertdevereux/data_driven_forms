@@ -1,0 +1,30 @@
+{% extends "app1/base.html" %}
+
+<!-- added to ensure session data is wiped before a new use -->
+<script>
+    localStorage.clear();
+    sessionStorage.clear();
+</script>
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Enter Your User ID</h2>
+
+    {% if messages %}
+        <div class="alert alert-danger">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'user_login' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="user_id" class="form-label">User ID:</label>
+            <input type="text" class="form-control" id="user_id" name="user_id" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}

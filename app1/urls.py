@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import completion_page, restart_process
 from .views_data import load_dummy_data, upload_regimes, upload_schedules, upload_sections, upload_routing, upload_questions, upload_permissions, new_regime, new_schedule, new_section, display_regimes, display_schedules, display_sections,display_routing,display_questions, display_permissions, display_answer_basic
-from .views_select import consistency_check, user_login, select_regime, select_schedule, select_section, summarise_selection
+from .views_select import select_schedule, select_section, summarise_selection
 from .views_gather import process_section, question_router, process_answer, review_section
 from .views_screens import screen, task_list
 from . import views
@@ -9,8 +9,6 @@ from . import views
 urlpatterns = [
 
     # from views
-    path('', consistency_check, name='consistency_check'),
-    path('user_login', user_login, name='user_login'),
     path("completion/", completion_page, name="completion_page"),
     path("restart/", restart_process, name="restart_process"),
 
@@ -38,9 +36,9 @@ urlpatterns = [
     path('display/answer_basic/', display_answer_basic, name='display_answer_basic'),
 
     # from views_select
-    path('select_regime/', select_regime, name='select_regime'),
     path("select_schedule/", select_schedule, name="select_schedule"),
-    path("select_section/<str:schedule_id>/", select_section, name="select_section"),
+    path("select_section/<str:schedule_id>/", select_section, name="select_section"), # with schedule
+    path("select_section/", select_section, name="select_section"),  # no schedule_id = simple regime
     path("summarise_selection/<str:schedule_id>/<str:section_id>/", summarise_selection, name="summarise_selection"),
 
     # from views_gather
@@ -48,7 +46,6 @@ urlpatterns = [
     path("question/<str:question_id>/", question_router, name="question_router"),
     path("process/<str:question_id>/", process_answer, name="process_answer"),
     path("review_section/", review_section, name="review_section"),
-
 
     # from views_screens
     path("task_list/", task_list, name="task_list"),

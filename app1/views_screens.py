@@ -17,9 +17,11 @@ def screen(request, question_id):
     question_type = question["question_type"].lower()
     html_name = f"app1/template_{question_type}.html"
     user_id = request.session.get("user_id")
+    regime_name = request.session.get("select_dict", {}).get("regime_name")
 
     # Base context
     context = {
+        "regime_name":regime_name,
         "question_id": question_id,
         "question_text": question["text"],
         "guidance": bleach.clean(question["guidance"], tags=ALLOWED_TAGS) if question.get("guidance") else "",

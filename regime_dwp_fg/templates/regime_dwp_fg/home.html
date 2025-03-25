@@ -1,0 +1,20 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+    <a href="{% url 'user_login' %}" class="govuk-back-link">Back</a>
+    <br>
+
+    {% if error %}
+        <p class="govuk-error-message">{{ error }}</p>
+    {% endif %}
+    <h1 class="govuk-heading-l">Funeral grant</h1>Some intro text, etc etc<br><br>
+
+    NOTE: this is slightly different html page,<br> since it sends user to process_section not select_schedule<br>
+    Which is a simple illustration of how regime apps can be different,<br> while reusing core data gather app<br><br>
+
+    <p> Start your application here, providing information about yourself and your circumstances</p><br>
+    <a href="{% url 'process_section' %}" class="govuk-button" role="button">
+    Start
+</a>
+
+{% endblock %}

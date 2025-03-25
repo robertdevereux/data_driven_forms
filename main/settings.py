@@ -59,6 +59,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tester', # this one from RD
     'app1', # this one from RD
+    'core_home', # this one from RD
+    'regime_dwp_uc', # this one from RD
+    'regime_dwp_fg',# this one from RD
+    'regime_hmrc_iht', # this one from RD
 ]
 
 MIDDLEWARE = [

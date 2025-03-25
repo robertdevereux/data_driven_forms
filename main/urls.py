@@ -18,8 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('app1.urls')),  # this sends http://127.0.0.1:8000 to app1 (and that sends '' to app1_home
+
+    path('', include('core_home.urls')),  # root path goes to core_home
+
+    path('regime-dwp-uc/', include(('regime_dwp_uc.urls', 'regime_dwp_uc'), namespace='regime_dwp_uc')),
+    path('regime-dwp-fg/', include(('regime_dwp_fg.urls', 'regime_dwp_fg'), namespace='regime_dwp_fg')),
+    path('regime-hmrc-iht/', include(('regime_hmrc_iht.urls','regime_hmrc_iht'), namespace='regime_hmrc_iht')),
+
     path('app1/', include('app1.urls')),  # This makes sure all app1 views are prefixed
     path('admin/', admin.site.urls), # this sends http://127.0.0.1:8000/admin off to admin site
-    path('tester/', include('tester.urls')),  # this sends http://127.0.0.1:8000/tester off to tester (and that sends '' to tester_home
+    path('tester/', include('tester.urls')),  # this sends http://127.0.0.1:8000/tester off to tester app (and that sends '' to tester_home
 ]

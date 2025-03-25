@@ -170,7 +170,7 @@ def display_answer_basic(request):
 from django.http import HttpResponse
 from .models import Regime, Schedule, Section, User, Permission
 
-def load_dummy_data(request):
+def load_dummy_data_1(request):
     # --- Regimes ---
     regimes = [
         Regime(regime_id="HMRC_IHT", regime_name="HMRC – Inheritance Tax"),
@@ -241,3 +241,81 @@ def load_dummy_data(request):
 
     return HttpResponse("Dummy data loaded successfully.")
 
+def load_dummy_data_2(request):
+    # --- Add Simple Regime ---
+    simple_regime = Regime(regime_id="DWP_FG", regime_name="DWP – Funeral Grant")
+    Regime.objects.get_or_create(regime_id="DWP_FG", defaults={"regime_name": "DWP – Funeral Grant"})
+
+    # --- Add Section for Simple Regime (no schedule) ---
+    Section.objects.get_or_create(
+        section_id="FG_details",
+        defaults={
+            "section_name": "Funeral grant form",
+            "regime_id": "DWP_FG"  # direct link to regime
+        }
+    )
+
+    # --- Give Eve permission for simple regime too
+    Permission.objects.get_or_create(user_id="user_eve", section_id="FG_details")
+
+def load_dummy_data(request):
+    questions = [
+        Question(
+            question_id="FG_Q1",
+            question_type="text",
+            question_text="What is your full name?",
+            hint="As shown on official documents.",
+            answer_type="text",
+        ),
+        Question(
+            question_id="FG_Q2",
+            question_type="text",
+            question_text="Please briefly describe your relationship to the deceased.",
+            guidance="Include any relevant details like family or friend.",
+            answer_type="text",
+        ),
+        Question(
+            question_id="FG_Q3",
+            question_type="radio",
+            question_text="Are you currently receiving any benefits?",
+            options="Yes;No",
+            answer_type="text",
+        ),
+        Question(
+            question_id="FG_Q4",
+            question_type="checkbox",
+            question_text="Which of the following costs are you applying for?",
+            guidance="Tick all that apply.",
+            options="Funeral Director fees; Cremation or burial; Travel expenses; Medical certificates",
+            answer_type="text",
+        )
+    ]
+
+    Question.objects.bulk_create(questions, ignore_conflicts=True)
+
+    routings = [
+        Routing(
+            section_id="FG_onepage",
+            current_question="FG_Q1",
+            next_question="FG_Q2"
+        ),
+        Routing(
+            section_id="FG_onepage",
+            current_question="FG_Q2",
+            next_question="FG_Q3"
+        ),
+        Routing(
+            section_id="FG_onepage",
+            current_question="FG_Q3",
+            next_question="FG_Q4"
+        ),
+        Routing(
+            section_id="FG_onepage",
+            current_question="FG_Q4",
+            next_question="END"
+        )
+    ]
+
+    Routing.objects.bulk_create(routings, ignore_conflicts=True)
+
+    return HttpResponse("Dummy data loaded successfully.")
