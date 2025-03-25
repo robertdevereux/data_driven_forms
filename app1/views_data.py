@@ -241,7 +241,7 @@ def load_dummy_data_1(request):
 
     return HttpResponse("Dummy data loaded successfully.")
 
-def load_dummy_data_2(request):
+def load_dummy_data(request):
     # --- Add Simple Regime ---
     simple_regime = Regime(regime_id="DWP_FG", regime_name="DWP – Funeral Grant")
     Regime.objects.get_or_create(regime_id="DWP_FG", defaults={"regime_name": "DWP – Funeral Grant"})
@@ -258,7 +258,7 @@ def load_dummy_data_2(request):
     # --- Give Eve permission for simple regime too
     Permission.objects.get_or_create(user_id="user_eve", section_id="FG_details")
 
-def load_dummy_data(request):
+def load_dummy_data_2(request):
     questions = [
         Question(
             question_id="FG_Q1",
