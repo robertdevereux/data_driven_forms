@@ -48,31 +48,27 @@
       {% endfor %}
 
       <!-- ✅ Confirm button aligned under 'Change' column -->
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key"></dt>
-        <dd class="govuk-summary-list__value"></dd>
-        <dd class="govuk-summary-list__actions">
-          <form method="post" action="{% url 'completion_page' %}">
-            {% csrf_token %}
-            <button
-              type="submit"
-              class="govuk-button govuk-button--success govuk-!-margin-bottom-0"
-              style="float: right;"
-            >
-              Confirm
-            </button>
-          </form>
-        </dd>
-      </div>
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key"></dt>
+      <dd class="govuk-summary-list__value"></dd>
+      <dd class="govuk-summary-list__actions">
+        <form method="post" action="{% url 'confirm_section' %}">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="govuk-button govuk-button--success govuk-!-margin-bottom-0"
+            style="float: right;"
+          >
+          Confirm
+          </button>
+        </form>
+      </dd>
+  </div>
 
     </dl>
-
   </div>
 </div>
-
-
-
-
-
-
+<br><br>
+        Section answers2: {{ context.section_answers }}<br>
+        Asked_ids: {{ context.asked_ids }}<br>
 {% endblock %}

@@ -1,10 +1,76 @@
-import csv, re
+import csv, re, io
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Regime, Schedule,Section,Routing, Question, Permission, AnswerBasic, AnswerTable
+from .models import Regime, Schedule, Section, Routing, Question, Question2, Permission, AnswerBasic, AnswerTable
 from .forms import RegimeForm, ScheduleForm, SectionForm  # We'll create these forms
+
+def clean_uploaded_csv(file, expected_field_count=None, strict_column_check=True):
+    """
+    Cleans and returns rows from a CSV file-like object.
+
+    Args:
+        file: Django UploadedFile (request.FILES['file'])
+        expected_field_count: int, optional
+        strict_column_check: bool, if True, raises on non-empty extra columns
+
+    Returns:
+        (header, rows): list of header columns, list of cleaned row lists
+
+    Raises:
+        ValueError if header is missing or if rows are malformed
+    """
+    content = file.read().decode('utf-8', errors='ignore')
+    print(f"📏 Raw content length: {len(content)}")
+
+    # Normalize line endings
+    content = content.replace('\r\n', '\n').replace('\r', '\n')
+    raw_lines = content.split('\n')
+
+    # Remove fully empty lines (just whitespace or commas)
+    meaningful_lines = []
+    for line in raw_lines:
+        fields = [f.strip() for f in line.split(',')]
+        if any(field for field in fields):
+            meaningful_lines.append(','.join(fields))
+
+    print(f"🧹 Non-empty lines: {len(meaningful_lines)}")
+
+    # Strip control characters
+    cleaned_lines = [re.sub(r'[\x00-\x1F\x7F-\x9F]', '', line) for line in meaningful_lines]
+
+    print("🧪 Sample cleaned lines:")
+    for i, line in enumerate(cleaned_lines[:5]):
+        print(f"  {i+1}: {repr(line)} — {line.count(',')} commas")
+
+    # Parse with CSV reader
+    csvfile = io.StringIO('\n'.join(cleaned_lines))
+    reader = csv.reader(csvfile)
+
+    try:
+        header = next(reader)
+        print(f"🧠 Header: {header}")
+    except StopIteration:
+        raise ValueError("Empty or invalid CSV file — no header row found.")
+
+    rows = []
+    for i, row in enumerate(reader, start=2):
+        base_fields = row[:len(header)]
+        extra_fields = row[len(header):]
+
+        # Check for unexpected data in extra fields
+        if strict_column_check and extra_fields and any(f.strip() for f in extra_fields):
+            raise ValueError(f"❌ Row {i} has unexpected extra data columns: {extra_fields}")
+
+        rows.append(base_fields)
+
+    if expected_field_count and len(header) != expected_field_count:
+        raise ValueError(
+            f"❌ Expected {expected_field_count} columns, but header has {len(header)}."
+        )
+
+    return header, rows
 
 def upload_regimes(request):
     if request.method == 'POST' and request.FILES.get('file'):
@@ -45,7 +111,7 @@ def upload_sections(request):
 
     return render(request, 'app1/upload_csv.html', {'data_name':'Section'})
 
-def upload_routing(request):
+def upload_routing2(request):
     if request.method == 'POST' and request.FILES.get('file'):
         file = request.FILES['file']
         reader = csv.reader(file.read().decode('utf-8').splitlines())
@@ -58,34 +124,102 @@ def upload_routing(request):
 
     return render(request, 'app1/upload_csv.html', {'data_name':'Routing'})
 
+def upload_routing(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        try:
+            header, rows = clean_uploaded_csv(
+                request.FILES['file'],
+                expected_field_count=4,
+                strict_column_check=True
+            )
+        except ValueError as e:
+            messages.error(request, f"❌ Error: {str(e)}")
+            return redirect('upload_routing')
+
+        success_count = 0
+        error_count = 0
+
+        for i, row in enumerate(rows, start=2):
+            row = [cell.strip() if cell else None for cell in row]
+
+            try:
+                Routing.objects.update_or_create(
+                    section_id=row[0],
+                    current_question=row[1],
+                    answer_value=row[2],  # Can be blank/None
+                    defaults={'next_question': row[3]}
+                )
+                print(f"✅ Row {i}: Routing loaded for {row[0]} → {row[3]}")
+                success_count += 1
+            except Exception as e:
+                print(f"❌ Row {i} error: {e}")
+                error_count += 1
+
+        messages.success(
+            request,
+            f"✅ Routing upload complete: {success_count} loaded, {error_count} errors."
+        )
+        return redirect('upload_routing')
+
+    return render(request, 'app1/upload_csv.html', {'data_name': 'Routing'})
+
 def upload_questions(request):
     if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
+        try:
+            header, rows = clean_uploaded_csv(
+                request.FILES['file'],
+                expected_field_count=8, # matching the number of fields in mapped_data below, plus question_id
+                strict_column_check=True # throws an error if file has data beyond first 8 cols
+            )
+        except ValueError as e:
+            messages.error(request, f"❌ Error: {str(e)}")
+            return redirect('upload_questions')
 
-        # Decode file and ensure correct parsing with quoted fields
-        reader = csv.reader(file.read().decode('utf-8', errors='ignore').splitlines(), quotechar='"')
-        next(reader)  # Skip header row
-        for row in reader:
-            row = (row + [None] * 8)[:8]  # Ensure row has at least 8 columns
-            row = [re.sub(r'[\x00-\x1F\x7F-\x9F]', '', value).strip() if value else None for value in row]
+        error_count=0
+        success_count=0
+
+        for i, row in enumerate(rows, start=2):
+            # Ensure row has exactly 8 fields
+            row = (row + [None] * 8)[:8]
+            row = [cell.strip() if cell else None for cell in row]
+
             mapped_data = {
-                'guidance': row[1] if row[1] else None,
+                'guidance': row[1],
                 'question_text': row[2],
-                'hint': row[3] if row[3] else None,
+                'hint': row[3],
                 'question_type': row[4],
-                'options': row[5] if row[5] else None,
-                'answer_type': row[6],  # Double-checking if row[6] is correct
-                'parent_question_id': row[7] if row[7] else None
+                'options': row[5],
+                'answer_type': row[6],
+                'parent_question_id': row[7],
             }
-            try:
-                Question.objects.update_or_create(question_id=row[0], defaults=mapped_data)
-            except:
-                print(mapped_data)
 
-        messages.success(request, "Questions uploaded successfully! Any errors printed in console")
+            question_id = row[0]
+            if not question_id:
+                print(f"⚠️ Skipping row {i}: missing question ID")
+                error_count += 1
+                continue
+
+            try:
+                Question.objects.update_or_create(
+                    question_id=question_id,
+                    defaults=mapped_data
+                )
+                #print(f"✅ Row {i}: Loaded question {question_id}")
+                success_count += 1
+            except Exception as e:
+                print(f"❌ Row {i} error: {e}")
+                error_count += 1
+
+        messages.success(
+            request,
+            f"✅ Upload complete: {success_count} questions loaded, {error_count} errors. See console for details."
+        )
         return redirect('upload_questions')
 
-    return render(request, 'app1/upload_questions.html')
+    else:
+        messages.error(request, "No file uploaded.")
+        return render(request, 'app1/upload_questions.html')
+
 
 def upload_permissions(request):
     if request.method == 'POST' and request.FILES.get('file'):
@@ -152,7 +286,7 @@ def display_sections(request):
     return render(request, 'app1/display_sections.html', {'dbtest_data': data})
 
 def display_routing(request):
-    data = Routing.objects.order_by('section_id', 'current_question','answer_value').all()
+    data = Routing.objects.order_by('section_id', 'order_in_section').all()
     return render(request, 'app1/display_routing.html', {'dbtest_data': data})
 
 def display_questions(request):

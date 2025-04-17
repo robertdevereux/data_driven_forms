@@ -2,65 +2,71 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from .models import Schedule, Section, ScheduleStatus, SectionStatus
 
-'''
-def model_to_dict(model, unique_field):
-    # unique field is a string; model is just the model name (not a string)
-    return {
-        obj[unique_field]: {k: v for k, v in obj.items() if k != unique_field}
-        for obj in model.objects.values()
-    }
-'''
-
 def select_schedule(request):
 
-    user_id = request.session.get("select_dict", {}).get("user_id")
-    regime_id = request.session.get("select_dict", {}).get("regime_id")
-    regime_name = request.session.get("select_dict", {}).get("regime_name")
-    section_ids = request.session.get("section_ids", [])
-
     # Get schedules the user can access under this regime
+    select_dict=request.session.get("select_dict")
+    regime_id = select_dict["regime_id"]
+    section_ids = request.session.get("section_ids", []) # all sections in selected regime that user can access
     schedule_ids = (
         Section.objects.filter(section_id__in=section_ids, schedule__regime_id=regime_id)
         .values_list("schedule_id", flat=True)
         .distinct()
     )
-    print("B: ",schedule_ids)
     schedules = Schedule.objects.filter(schedule_id__in=schedule_ids).values("schedule_id", "schedule_name")
 
-    # Get schedule completion statuses
+    # Get schedule completion statuses, and populate list of schedules (progress) for html
+    user_id = select_dict["user_id"]
     schedule_statuses = {
-        status["schedule_id"]: status["status"]
-        for status in ScheduleStatus.objects.filter(user_id=user_id, regime_id=regime_id).values("schedule_id", "status")
+        status.schedule_id: status.get_status_display()
+        for status in ScheduleStatus.objects.filter(user_id=user_id, regime_id=regime_id)
     }
-
     progress = [
         {
             "schedule_id": schedule["schedule_id"],
             "name": schedule["schedule_name"],
-            "href": reverse("select_section", kwargs={"schedule_id": schedule["schedule_id"]}),
-            "status": schedule_statuses.get(schedule["schedule_id"], "not_started")
+            "href": reverse("record_schedule_choice", kwargs={"schedule_id": schedule["schedule_id"]}),
+            "status": schedule_statuses.get(schedule["schedule_id"], "Not started")
         }
         for schedule in schedules
     ]
 
-    return render(request, "app1/select_schedule_2.html", {"progress": progress, 'regime_name':regime_name})
+    # Define the url to use when all schedules complete, get regime name, and render select_schedule html
+    home_name = f"regime_{regime_id.lower()}:start"
+    url_home = reverse(home_name)
+    regime_name = select_dict["regime_name"]
+    return render(request, "app1/select_schedule_2.html", {"progress": progress, 'regime_name':regime_name, 'url_home':url_home})
+
+def record_schedule_choice(request, schedule_id):
+    select_dict = request.session.get("select_dict", {})
+    select_dict["schedule_id"] = schedule_id
+    select_dict["section_id"] = ""  # clear any pre-existing downstream values, as starting new schedule
+    request.session["select_dict"] = select_dict
+    request.session.modified = True
+
+    return redirect("select_section", schedule_id=schedule_id)
 
 def select_section(request, schedule_id=None):
 
-    # Step 1: Get context from session
-    user_id = request.session.get("select_dict", {}).get("user_id")
-    regime_id = request.session.get("select_dict", {}).get("regime_id")
-    regime_name = request.session.get("select_dict", {}).get("regime_name")
-    section_ids = request.session.get("section_ids", [])
+    # Flush any previous completed section data
+    for key in ["basic_answers", "table_row", "asked_ids", "routing_table", "question_table"]:
+        request.session.pop(key, None)
+    for subkey in ["first_question_id", "section_id", "section_name", "section_type"]:
+        request.session.get("select_dict", {}).pop(subkey, None)
+    request.session.modified = True
 
-    # Step 2: Get permitted sections for this schedule
+    # Get permitted sections for this schedule
+    select_dict=request.session.get("select_dict")
+    regime_id = select_dict["regime_id"]
+    section_ids = request.session.get("section_ids")
     sections = Section.objects.filter(
         section_id__in=section_ids,
         schedule_id=schedule_id,
         schedule__regime_id=regime_id
     ).values("section_id", "section_name")
 
-    # Step 3: Fetch any existing SectionStatus records
+    # Fetch any existing SectionStatus records
+    user_id=select_dict['user_id']
     section_id_list = [s["section_id"] for s in sections]
     existing_statuses = {
         status.section_id: status.get_status_display()
@@ -71,7 +77,7 @@ def select_section(request, schedule_id=None):
         )
     }
 
-    # Step 4: Ensure each section has a status (create if needed)
+    # Ensure each section has a status (create if needed), and create list of all sections for html
     progress = []
     for section in sections:
         section_id = section["section_id"]
@@ -89,46 +95,44 @@ def select_section(request, schedule_id=None):
 
         progress.append({
             "name": section["section_name"],
-            "href": reverse("summarise_selection", kwargs={
-                "schedule_id": schedule_id,
-                "section_id": section_id
-            }),
+            "section_id": section_id,
+            "href": reverse("record_section_choice", kwargs={"section_id": section_id}),
             "status": status_value
         })
 
-    return render(request, "app1/select_section_2.html", {"progress": progress,'regime_name':regime_name})
+    # define the url to use when all sections complete, get regime name, and render select_section html
+    if select_dict['schedule_count'] == 0:
+        url_home =  'regime_' + select_dict['regime_id'].lower() + ":start"
+    else:
+        url_home =  reverse("select_schedule")
+    regime_name = select_dict["regime_name"]
+    return render(request, "app1/select_section_2.html", {"progress": progress,'regime_name':regime_name, 'url_home':url_home})
 
-def summarise_selection(request, schedule_id, section_id):
+def record_section_choice(request, section_id):
     section_ids = request.session.get("section_ids", [])
     select_dict = request.session.get("select_dict", {})
 
-    # Verify the section is one the user is permitted to access
+    # Safety check: make sure user can access this section
     try:
-        section = Section.objects.select_related("schedule").get(
+        section = Section.objects.get(
             section_id=section_id,
-            schedule_id=schedule_id,
             section_id__in=section_ids
         )
     except Section.DoesNotExist:
-        return redirect("select_schedule")  # Or raise a 403 if needed
+        return redirect("select_schedule")  # or another safe fallback
 
-    # Extract schedule from related field
-    schedule = section.schedule
-
-    # Update select_dict with both schedule and section details
+    # Update only section-specific values
     select_dict.update({
-        "schedule_id": schedule.schedule_id,
-        "schedule_name": schedule.schedule_name,
         "section_id": section.section_id,
         "section_name": section.section_name,
         "section_type": section.section_type,
     })
 
     request.session["select_dict"] = select_dict
-    request.session["previous_question_ids"] = request.session.get("question_ids", []) # Store previous questions before re-routing
+    request.session["previous_question_ids"] = request.session.get("question_ids", [])
     request.session.modified = True
-    print(select_dict)
 
     return redirect("process_section")
+
 
 

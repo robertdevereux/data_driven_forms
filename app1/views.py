@@ -5,18 +5,6 @@ from django.contrib import messages
 from urllib.parse import urlencode
 from .models import Permission, Regime, Schedule, Section, Routing, Question
 
-def completion_page(request):
-    error_message = request.GET.get("error_message", "")  # Ensure error message is a string
-    final_json = request.session.get("final_json")  # Retrieve stored JSON
-
-    if not final_json:
-        final_json = json.dumps({"message": "No responses recorded"}, indent=4)  # Default JSON if empty
-
-    return render(request, "app1/completion.html", {
-        "error_message": error_message,
-        "final_json": final_json
-    })
-
 def restart_process(request):
     print("******** SESSION DATA BEFORE FLUSH ********")
     print(request.session.items())  # Prints all session key-value pairs
@@ -64,3 +52,27 @@ def total(table_answers, column_names):
 
     print('a is now: ', a)
 
+def assign_routing_order(request):
+    section_ids = Routing.objects.values_list('section_id', flat=True).distinct()
+
+    updated = 0
+
+    for section in section_ids:
+        routings = Routing.objects.filter(section_id=section).order_by('id')  # assume id ~ original insert order
+        for i, route in enumerate(routings):
+            route.order_in_section = i
+            route.save(update_fields=['order_in_section'])
+            updated += 1
+
+    messages.success(request, f"✅ Assigned order to {updated} routing entries.")
+    return redirect('user_login')
+
+
+'''
+def model_to_dict(model, unique_field):
+    # unique field is a string; model is just the model name (not a string)
+    return {
+        obj[unique_field]: {k: v for k, v in obj.items() if k != unique_field}
+        for obj in model.objects.values()
+    }
+'''

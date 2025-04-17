@@ -1,9 +1,10 @@
 # core_home/views.py
 
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.http import HttpResponse
 from django.db.models import Q
-from app1.models import Permission, Regime, Section, Routing, Question
+from app1.models import Permission, Regime, Schedule, Section, Routing, Question
 
 def consistency_check(request):
 
@@ -57,7 +58,7 @@ def consistency_check(request):
         )
 
     # If errors exist, show them then exit via HttpResponse
-    print("Errors",errors)
+
     if errors:
         return HttpResponse(
             "<h3>The data on questions and routing has failed the consistency checks</h3>"
@@ -109,10 +110,11 @@ def user_login(request):
 
 def select_regime(request):
     if request.method == "POST":
+
+        # get user choice of regime_id and check it's valid
         regime_id = request.POST.get("selected_regime")
         user_regimes_list = request.session.get("user_regimes_list", [])
         user_regime_ids = [r["id"] for r in user_regimes_list]
-
         if not regime_id or regime_id not in user_regime_ids:
             return HttpResponse("Something that should be impossible has occurred in select_regime")
 
@@ -121,30 +123,48 @@ def select_regime(request):
             (r["name"] for r in user_regimes_list if r["id"] == regime_id),"Unknown Regime"
         )
 
-        # Look in user_section_ids for those relating to regime_id
-        user_section_ids = request.session.get('user_section_ids')  # all the sections the user can access
-        section_ids = Section.objects.filter(
+        # Look in Section to find those belonging to regime_id for which user has permission (user_section_ids)
+        user_section_ids = request.session.get('user_section_ids', [])
+        section_query = Section.objects.filter( # keep as a query for re-use below if only one section
             section_id__in=user_section_ids
         ).filter(
             Q(schedule__regime_id=regime_id) | Q(regime_id=regime_id)
         )
+        section_ids = list(section_query.values_list("section_id", flat=True))
+        m = len(section_ids)
 
-        # store key parameters in session
+        # Step 2: Get schedules tied to those sections
+        schedule_ids = list(
+            Section.objects
+            .filter(section_id__in=section_ids, schedule__regime_id=regime_id)
+            .values_list("schedule_id", flat=True)
+            .distinct()
+        )
+        n = len(schedule_ids)
+
+        # Step 3: Update session
         select_dict = request.session.get("select_dict", {})
         select_dict["regime_id"] = regime_id
         select_dict["regime_name"] = regime_name
+        select_dict["schedule_count"] = n
+        select_dict["section_count"] = m
+        request.session["schedule_ids"] = schedule_ids
+        request.session["section_ids"] = section_ids
+
+        if n == 0:
+            select_dict["schedule_id"] = ""
+            select_dict["schedule_name"] = ""
+
+        if m == 1:
+            section = section_query.first()
+            select_dict["section_id"] = section.section_id
+            select_dict["section_name"] = section.section_name
+            select_dict["section_type"] = section.section_type
+
         request.session["select_dict"] = select_dict
-        request.session['section_ids'] = list(section_ids.values_list("section_id", flat=True))
-
-        if section_ids.count() == 1:
-            section = section_ids.first()  # if there is only one, then .first() gets it
-            request.session["select_dict"]["section_id"] = section.section_id  # find first and only id
-            request.session["select_dict"]["section_type"] = section.section_type  # find first and only type
-            request.session["select_dict"]["schedule_id"] = ""
-
         request.session.modified = True
 
-        return redirect(f"regime_{regime_id.lower()}:start")
+        return redirect(f"regime_{regime_id.lower()}:start") # go to selected regime app, start, and to home html
 
     # On GET: just pull from session, no DB call
     user_regimes_list = request.session.get("user_regimes_list", {})
@@ -165,3 +185,33 @@ def get_permitted_regimes(user_id):
 
     # Return Regime queryset
     return Regime.objects.filter(regime_id__in=all_ids)
+
+def start_url(request):
+    select_dict = request.session.get('select_dict')
+    section_count = select_dict['section_count']
+    schedule_count = select_dict['schedule_count']
+
+    if section_count == 1:
+        continue_html = reverse("process_section")
+    elif schedule_count == 0:
+        continue_html = reverse("select_section")
+    else:
+        continue_html = reverse("select_schedule")
+
+    return continue_html
+
+def end_url(request):
+    select_dict = request.session.get('select_dict')
+    regime_id = select_dict['regime_id']
+    section_count = select_dict['section_count']
+    schedule_count=select_dict['schedule_count']
+    schedule_id=select_dict['schedule_id']
+
+    if section_count == 1:
+        continue_html = reverse("regime_"+regime_id.lower()+":start")
+    elif schedule_count==0:
+        continue_html = reverse("select_section")
+    else:
+        continue_html = reverse("select_section", kwargs={"schedule_id":schedule_id})
+
+    return continue_html

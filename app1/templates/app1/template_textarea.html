@@ -22,10 +22,14 @@
         {% endif %}
 
         <!-- the space for an answer -->
-
         <textarea class="govuk-textarea" id="more-detail" name="question" rows="5" aria-describedby="more-detail-hint">{{ previous_answer }}</textarea>
         <br><br>
         <button type="submit" class="govuk-button">Continue</button>
+
     </form>
+
+    <br><br>
+        Section answers: {{ section_answers }}<br>
+        Asked_ids: {{ asked_ids }}<br>
 {% endblock %}
 

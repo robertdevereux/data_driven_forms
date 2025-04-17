@@ -7,14 +7,16 @@
     <h1>Routing</h1>
     <table border="1">
         <tr>
-          <th>Section</th>
-          <th>Current ID</th>
-          <th>Answer values</th>
-          <th>Next ID</th>
+            <th>Section</th>
+            <th>Order in section</th>
+            <th>Current ID</th>
+            <th>Answer values</th>
+            <th>Next ID</th>
         </tr>
         {% for entry in dbtest_data %}
         <tr>
             <td>{{ entry.section_id }}</td>
+            <td>{{ entry.order_in_section }}</td>
             <td>{{ entry.current_question }}</td>
             <td>{{ entry.answer_value }}</td>
             <td>{{ entry.next_question }}</td>

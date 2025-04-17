@@ -2,21 +2,32 @@
 
 {% block content %}
 
+<h2>Progress in providing information</h2>
+<p>Select any item to add, view or edit information<br>
+When each area is complete, please return to the home page</p>
+
 <ul class="govuk-task-list">
   {% for item in progress %}
   <li class="govuk-task-list__item govuk-task-list__item--with-link">
+
     <div class="govuk-task-list__name-and-hint">
       <a class="govuk-link govuk-task-list__link" href="{{ item.href }}">
         {{ item.name }}
       </a>
     </div>
+
     <div class="govuk-task-list__status">
       <strong class="govuk-tag govuk-tag--blue">
         {{ item.status }}
       </strong>
+
     </div>
+
   </li>
   {% endfor %}
+
 </ul>
+
+<a href="{{ url_home }}" class="govuk-back-link">Home</a>
 
 {% endblock %}

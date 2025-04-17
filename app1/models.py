@@ -87,17 +87,53 @@ class Question(models.Model):
     def __str__(self):
         return f"{self.question_id} - {self.question_text}"
 
+class Question2(models.Model):
+    QUESTION_TYPE_CHOICES = [
+        ('text', 'Text'),
+        ('number', 'Number'),
+        ('radio', 'Radio'),
+        ('picklist', 'Pick List'),
+        ('variant-a', 'Variant A'),
+        ('variant-b', 'Variant B'),
+    ]
+    ANSWER_TYPE_CHOICES = [
+        ('text', 'Text'),
+        ('number', 'Number'),
+        ('date', 'Date'),
+    ]
+
+    question_id = models.CharField(max_length=50, primary_key=True)  # Unique identifier (Q1, Q2, etc.)
+    question_text = models.TextField(blank=True, null=True)  # Main question text
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES)
+    guidance = models.TextField(blank=True, null=True)  # Long guidance text before the question
+    hint = models.CharField(max_length=255, blank=True, null=True)  # Short hint after the question
+    answer_type = models.CharField(max_length=20, choices=ANSWER_TYPE_CHOICES, blank=True, null=True)  # Expected answer type
+    options = models.TextField(blank=True, null=True)  # Semi-colon separated values for radio/picklist
+    parent_question = models.ForeignKey(
+        'self', on_delete=models.CASCADE, blank=True, null=True, related_name='sub_questions'
+    )  # Links sub-questions to a variant screen
+
+    def __str__(self):
+        return f"{self.question_id} - {self.question_text}"
+
 ### 🔹 Routing (Defines the flow of questions within a Section) ###
 class Routing(models.Model):
-    section_id = models.CharField(max_length=100,default="section_1")
+    section_id = models.CharField(max_length=100, default="section_1")
     current_question = models.CharField(max_length=50)
-    answer_value = models.TextField(blank=True, null=True)  # Optional: Only needed for branching logic
+    answer_value = models.TextField(blank=True, null=True)  # Optional: branching logic
     next_question = models.CharField(max_length=50, default="Q1")
+    order_in_section = models.PositiveIntegerField(default=0)
+    totalled = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['section_id', 'current_question', 'answer_value'], name="unique_routing_rule")
+            models.UniqueConstraint(
+                fields=['section_id', 'current_question', 'answer_value'],
+                name="unique_routing_rule"
+            )
         ]
+        ordering = ['section_id', 'order_in_section']  # Default sort order
+
 
 ### 🔹 Permissions (Controls Access to Sections, which in turn define access to Schedule/Regime) ###
 class Permission(models.Model):
@@ -118,7 +154,7 @@ class AnswerBasic(models.Model):
     user_id = models.CharField(max_length=100)
     regime_id = models.CharField(max_length=100)
     question_id = models.CharField(max_length=100)
-    answer = models.TextField()  # Holds JSON string for checkboxes or plain text for others
+    answer = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the answer is created
 
     class Meta:
@@ -141,29 +177,16 @@ class AnswerBasic(models.Model):
 class AnswerTable(models.Model):
     user_id = models.CharField(max_length=100)
     regime_id = models.CharField(max_length=100)
-    question_id = models.CharField(max_length=100)  # Reference to the table (Will be = section_id)
-    answer = models.JSONField()  # Stores multiple rows of answers as JSON
-    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the answer is created
+    question_id = models.CharField(max_length=100)  # Reference to the table (usually section_id)
+    answer = models.JSONField(default=list)  # ✅ Stores multiple rows of answers; default = empty list
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user_id", "regime_id", "question_id")  # Ensures only 1 record per (user, regime, question)
-
-    def set_data(self, value):
-        """Handles conversion of Python lists/dictionaries to JSON."""
-        if isinstance(value, (list, dict)):  # Ensure JSON-serializable format
-            self.answer = json.dumps(value)
-        else:
-            raise ValueError("Data must be a list or dictionary")
-
-    def get_data(self):
-        """Returns JSON data as a Python object."""
-        try:
-            return json.loads(self.answer)
-        except json.JSONDecodeError:
-            return {}
+        unique_together = ("user_id", "regime_id", "question_id")  # One table per user/regime/section
 
     def __str__(self):
         return f"User {self.user_id} - Table {self.question_id}"
+
 
 class SectionStatus(models.Model):
     STATUS_CHOICES = [

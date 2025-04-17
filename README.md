@@ -38,8 +38,27 @@ An individual regime will then be defined by
 - EITHER one <i>section</i> of <i>questions<\i> 
 - OR one set of <i>sections</i> 
 - OR a set of <i>schedules</i>, each containing a set of questions (as many schedules as needed)
-All of which can be captured in the QUESTION, SECTION and SCHEDULE objects
 
+
+All of which can be captured in the QUESTION, SECTION, SCHEDULE, and REGIME objects, if we
+- require section_ids, schedule_ids and regime_ids to be unique; 
+- link every section_id to a regime_id
+- provide the option to link a section_id also to a schedule_id
+- then link individual questions to sections (next section re Routing)
+
+<h2>Conditional question routing</h2>
+
+At its simplest, each question in a section is asked in turn
+
+But it is common for the order of questions to be conditional on some of the answers provided (if Q1="England" then ask Q2, if not ask Q3)
+
+To facilitate this, we will define a 
+- a ROUTING object
+- which holds section_ids so that it can be filtered to return only the records for that section_id
+- which records each question_id to be asked within the section (the same question can appear against diffent sections)
+- and against each question_id 
+	- either with one record per question_id, records the next_question_id, 
+	- or with multiple records per question_id, records the various next_question_ids dependent on the answer provided 
 
 <h2>Access controls</h2>
 
@@ -78,12 +97,17 @@ That way,
 
 With individual permissions set in this way, a user would see only the regimes, schedules, and sections to which they have access<br>
 
+
 <h2>The high level process</h2>
 
 On a successful login, the user name is used to create a list of regime this user can see, presented as options to choose<br>
 
-On choosing a regime, the user name and chosen regime is used to create a list of regime schedules this user can see, presented as options to choose<br>
+On choosing a regime, the user is directed to the regime home page with basic information, including the option to enter data
 
-On choosing a schedule, the user name and chosen schedule is used to create a list of sections which the user can see, presented as options to choose.
+On choosing to enter data the user is directed
+- EITHER straight to a individual questions (where there is only section)
+- OR to a menu of sections (where there are only a few sections in a regime), where user makes choice of sections, and thence to questions 
+- OR to a menu of schedules (where there are too many regime sections to be presented in one menu), where user makes choice of schedule, then section, and thence to questions
+
 
 On choosing a section, the app finds the relevant routing, and begins to run through the questions/routing.

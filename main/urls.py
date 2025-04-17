@@ -16,6 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
+from django.conf import settings
+import os
+
 
 urlpatterns = [
 
@@ -28,4 +32,4 @@ urlpatterns = [
     path('app1/', include('app1.urls')),  # This makes sure all app1 views are prefixed
     path('admin/', admin.site.urls), # this sends http://127.0.0.1:8000/admin off to admin site
     path('tester/', include('tester.urls')),  # this sends http://127.0.0.1:8000/tester off to tester app (and that sends '' to tester_home
-]
+] + static('/assets/', document_root=os.path.join(settings.BASE_DIR, 'app1/static/assets'))

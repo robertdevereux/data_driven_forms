@@ -1,0 +1,44 @@
+{% extends "app1/base.html" %}
+
+{% block content %}
+<style>
+.wrap-text {
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 180px;
+}
+</style>
+
+<h1 class="govuk-heading-l">{{ section_name }}</h1>
+
+{% if has_records %}
+
+    <table class="govuk-table" style="table-layout: fixed; width: 100%;">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                {% for header in table.headers %}
+                    <th class="govuk-table__header">{{ header }}</th>
+                {% endfor %}
+                <th class="govuk-table__header">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            {% for row in table.rows %}
+                <tr class="govuk-table__row">
+                    {% for cell in row %}
+                        <td class="govuk-table__cell wrap-text">{{ cell }}</td>
+                    {% endfor %}
+                    <td class="govuk-table__cell">
+                        <a class="govuk-link" href="{% url 'delete_table_record' section_id=section_id record_index=forloop.counter0 %}">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No records found for this section.</p>
+{% endif %}
+
+<br>
+<a href="{% url 'process_section' %}" class="govuk-back-link">Back to table summary</a>
+{% endblock %}

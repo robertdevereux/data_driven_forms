@@ -1,28 +1,38 @@
 {% extends "app1/base.html" %}
 
 {% block content %}
+
 <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-    {{ selected_section.name }}
+    {{ name }}
 </legend>
 
-    {% if selected_section.records == 0 %}
-        <p>No records entered so far</p>
-        <br><br>
-        <a href="{% url 'question_router' selected_section.first_question  %}" class="govuk-back-link">
-            Add records
-        </a>
-        <br>
-        <a href="{% url 'select_section' %}" class="govuk-back-link">Continue</a>
-    {% else %}
-        <p>{{ selected_section.records }} records entered so far</p>
-        <br><br>
-        <a href="{% url 'question_router'  selected_section.first_question  %}" class="govuk-back-link">
-            Add more records
-        </a>
-        <br>
-        <a href="{% url 'select_section' %}" class="govuk-back-link">Continue</a>
+{% if records == 0 %}
 
-    {% endif %}
+    <p class="govuk-body">No records entered so far.</p>
 
+    <a href="{% url 'question_router' first_question %}" class="govuk-button" data-module="govuk-button">
+        Add a record
+    </a>
+
+    <p><a href="{% url 'select_section' %}" class="govuk-link">Continue without adding records</a></p>
+
+{% else %}
+
+    <p class="govuk-body">You have entered {{ records }} record{{ records|pluralize }}.</p>
+
+    {% for label, total in summary_totals %}
+        <p class="govuk-body">The total for {{ label }} is £{{ total|floatformat:2 }}</p>
+    {% endfor %}
+
+    <a href="{% url 'question_router' first_question %}" class="govuk-button" data-module="govuk-button">
+        Add another record
+    </a>
+
+    <p>
+        <a href="{% url 'table_details' %}" class="govuk-link">View or amend existing records</a><br>
+        <a href="{% url 'select_section' %}" class="govuk-link">Continue to next section</a>
+    </p>
+
+{% endif %}
 
 {% endblock %}
