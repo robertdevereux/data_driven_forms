@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import restart_process, assign_routing_order
+from .views import restart_process, assign_routing_order2
 from .views_data import load_dummy_data, upload_regimes, upload_schedules, upload_sections, upload_routing, upload_questions, upload_permissions, new_regime, new_schedule, new_section, display_regimes, display_schedules, display_sections,display_routing,display_questions, display_permissions, display_answer_basic
 from .views_select import select_schedule, select_section, record_schedule_choice, record_section_choice
 from .views_gather import process_section, question_router, process_answer, review_section, confirm_section
@@ -10,7 +10,7 @@ urlpatterns = [
 
     # from views
     path("restart/", restart_process, name="restart_process"),
-    path('assign_routing_order/', assign_routing_order, name='assign_routing_order'),
+    path('assign_routing_order/', assign_routing_order2, name='assign_routing_order'),
 
     # from views_data: upload files
     path('load_dummy_data/', load_dummy_data, name='load_dummy_data'),

@@ -111,25 +111,13 @@ def upload_sections(request):
 
     return render(request, 'app1/upload_csv.html', {'data_name':'Section'})
 
-def upload_routing2(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        reader = csv.reader(file.read().decode('utf-8').splitlines())
-        next(reader)  # Skip header row
-        for row in reader:
-            p=Routing(section_id=row[0],current_question=row[1],answer_value=row[2],next_question=row[3])
-            p.save()
-        messages.success(request, "Routing uploaded successfully!")
-        return redirect('upload_routing')
-
-    return render(request, 'app1/upload_csv.html', {'data_name':'Routing'})
 
 def upload_routing(request):
     if request.method == 'POST' and request.FILES.get('file'):
         try:
             header, rows = clean_uploaded_csv(
                 request.FILES['file'],
-                expected_field_count=4,
+                expected_field_count=6,
                 strict_column_check=True
             )
         except ValueError as e:
@@ -142,12 +130,18 @@ def upload_routing(request):
         for i, row in enumerate(rows, start=2):
             row = [cell.strip() if cell else None for cell in row]
 
+            mapped_data = {
+                'next_question': row[3],
+                'order_in_section': int(row[4]) if row[4] else 0,
+                'totalled': int(row[5]) if row[5] else 0,
+            }
+
             try:
                 Routing.objects.update_or_create(
                     section_id=row[0],
                     current_question=row[1],
                     answer_value=row[2],  # Can be blank/None
-                    defaults={'next_question': row[3]}
+                    defaults=mapped_data
                 )
                 print(f"✅ Row {i}: Routing loaded for {row[0]} → {row[3]}")
                 success_count += 1

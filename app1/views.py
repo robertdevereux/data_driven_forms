@@ -52,7 +52,7 @@ def total(table_answers, column_names):
 
     print('a is now: ', a)
 
-def assign_routing_order(request):
+def assign_routing_order2(request):
     section_ids = Routing.objects.values_list('section_id', flat=True).distinct()
 
     updated = 0
