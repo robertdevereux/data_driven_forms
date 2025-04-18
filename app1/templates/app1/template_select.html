@@ -12,8 +12,9 @@
         {% csrf_token %}
 
         <fieldset class="govuk-fieldset">
+
+            <!-- the question -->
             <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-                <!-- the question -->
                 <h1 class="govuk-fieldset__heading">{{ question_text }}</h1>
             </legend>
 
@@ -22,20 +23,17 @@
                 <p class="govuk-hint">{{ hint|safe }}</p>
             {% endif %}
 
-            <div class="govuk-checkboxes">
+            <select class="govuk-select" id="sort" name="sort">
                 {% for option in options %}
-                    <div class="govuk-checkboxes__item">
-
-                        <input class="govuk-checkboxes__input" id="option{{ forloop.counter }}" name="question" type="checkbox" value="{{ option }}"
-                            {% if option in previous_answers %}
-                               checked
-                            {% endif %}>
-                        <label class="govuk-label govuk-checkboxes__label" for="option{{ forloop.counter }}">
-                            {{ option }}
-                        </label>
-                    </div>
+                <option value="published">Recently published</option>
+                <option value="updated" selected>Recently updated</option>
+                <option value="views">Most views</option>
+                <option value="comments">Most comments</option>
+                {% for option in options %}
+                  <option value="comments">{{ option }}</option>
                 {% endfor %}
-            </div>
+              </select>
+
         </fieldset>
         <br>
         <button type="submit" class="govuk-button">Continue</button>

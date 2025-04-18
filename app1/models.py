@@ -26,12 +26,32 @@ class Schedule(models.Model):
 
 ### 🔹 Bottom Level: Section (may belong to a Schedule or directly to a Regime) ###
 class Section(models.Model):
+    SECTION_MODE_CHOICES = [
+        ("single", "One question per page"),
+        ("multi", "All questions on one page"),
+        ("flexible", "Flexible layout"),
+        ("custom", "Custom section with bespoke view"),
+    ]
+
     section_id = models.CharField(max_length=100, primary_key=True)
     section_name = models.CharField(max_length=255)
     section_type = models.IntegerField(default=0)
     section_records = models.IntegerField(default=0)
 
-    # Optional link to Schedule
+    section_mode = models.CharField(
+        max_length=10,
+        choices=SECTION_MODE_CHOICES,
+        default="flexible",
+        help_text="Controls how this section is rendered"
+    )
+
+    custom_view_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Django view name to use if section_mode is 'custom'"
+    )
+
     schedule = models.ForeignKey(
         Schedule,
         to_field="schedule_id",
@@ -40,7 +60,6 @@ class Section(models.Model):
         blank=True
     )
 
-    # Optional direct link to Regime
     regime = models.ForeignKey(
         'Regime',
         to_field="regime_id",
@@ -59,35 +78,6 @@ class Section(models.Model):
 
 ### 🔹 Master List of Questions (Independent of Sections) ###
 class Question(models.Model):
-    QUESTION_TYPE_CHOICES = [
-        ('text', 'Text'),
-        ('number', 'Number'),
-        ('radio', 'Radio'),
-        ('picklist', 'Pick List'),
-        ('variant-a', 'Variant A'),
-        ('variant-b', 'Variant B'),
-    ]
-    ANSWER_TYPE_CHOICES = [
-        ('text', 'Text'),
-        ('number', 'Number'),
-        ('date', 'Date'),
-    ]
-
-    question_id = models.CharField(max_length=50, primary_key=True)  # Unique identifier (Q1, Q2, etc.)
-    question_text = models.TextField(blank=True, null=True)  # Main question text
-    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES)
-    guidance = models.TextField(blank=True, null=True)  # Long guidance text before the question
-    hint = models.CharField(max_length=255, blank=True, null=True)  # Short hint after the question
-    answer_type = models.CharField(max_length=20, choices=ANSWER_TYPE_CHOICES, blank=True, null=True)  # Expected answer type
-    options = models.TextField(blank=True, null=True)  # Semi-colon separated values for radio/picklist
-    parent_question = models.ForeignKey(
-        'self', on_delete=models.CASCADE, blank=True, null=True, related_name='sub_questions'
-    )  # Links sub-questions to a variant screen
-
-    def __str__(self):
-        return f"{self.question_id} - {self.question_text}"
-
-class Question2(models.Model):
     QUESTION_TYPE_CHOICES = [
         ('text', 'Text'),
         ('number', 'Number'),

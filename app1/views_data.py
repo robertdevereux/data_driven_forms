@@ -318,8 +318,8 @@ def load_dummy_data(request):
 
     # --- Sections ---
     sections = [
-        Section(section_id="IHT_bank_UKbank", section_name="UK Bank Accounts", schedule_id="IHT_bank"),
-        Section(section_id="IHT_bank_NS", section_name="National Savings & Investments", schedule_id="IHT_bank"),
+        Section(section_id="IHT_bank_UKbank", section_name="UK Bank Accounts", schedule_id="IHT_bank",section_type=1),
+        Section(section_id="IHT_bank_NS", section_name="National Savings & Investments", schedule_id="IHT_bank",section_type=1),
         Section(section_id="IHT_property_home", section_name="Main Residence", schedule_id="IHT_property"),
         Section(section_id="IHT_property_other", section_name="Other Properties", schedule_id="IHT_property"),
         Section(section_id="UC_family_children", section_name="Children and Dependents", schedule_id="UC_family"),
@@ -406,21 +406,25 @@ def load_dummy_data(request):
     routings = [
         Routing(
             section_id="FG_details",
+            order_in_section=1,
             current_question="FG_Q1",
             next_question="FG_Q2"
         ),
         Routing(
             section_id="FG_details",
+            order_in_section=2,
             current_question="FG_Q2",
             next_question="FG_Q3"
         ),
         Routing(
             section_id="FG_details",
+            order_in_section=3,
             current_question="FG_Q3",
             next_question="FG_Q4"
         ),
         Routing(
             section_id="FG_details",
+            order_in_section=4,
             current_question="FG_Q4",
             next_question="END"
         )
