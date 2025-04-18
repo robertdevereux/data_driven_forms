@@ -3,7 +3,7 @@ import csv, re, io
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Regime, Schedule, Section, Routing, Question, Question2, Permission, AnswerBasic, AnswerTable
+from .models import Regime, Schedule, Section, Routing, Question, Permission, AnswerBasic, AnswerTable
 from .forms import RegimeForm, ScheduleForm, SectionForm  # We'll create these forms
 
 def clean_uploaded_csv(file, expected_field_count=None, strict_column_check=True):
@@ -294,9 +294,6 @@ def display_permissions(request):
 def display_answer_basic(request):
     data = AnswerBasic.objects.order_by('user_id','regime_id','question_id','answer','created_at').all()
     return render(request, 'app1/display_answer_basic.html', {'dbtest_data': data})
-
-from django.http import HttpResponse
-from .models import Regime, Schedule, Section, User, Permission
 
 def load_dummy_data(request):
     # --- Regimes ---
